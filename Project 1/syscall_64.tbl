@@ -415,4 +415,4 @@
 547	x32	pwritev2		compat_sys_pwritev64v2
 # This is the end of the legacy x32 range.  Numbers 548 and above are
 # not special and are not to be used for x32-specific syscalls.
-548	64	my_get_physical_addresses	sys_my_get_physical_addresses
+548	common	my_get_physical_addresses	sys_my_get_physical_addresses
