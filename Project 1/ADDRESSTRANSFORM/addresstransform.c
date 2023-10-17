@@ -106,7 +106,7 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
 
     printk("virtual_address_length = %d", virtual_address_length);
 
-    for (i = 0; i < virtual_address_length; i++) {
+    for (int i = 0; i < virtual_address_length; i++) {
         printk("i = %d", i);
         physical_address[i] = ADDRESS_TRANSFORM(virtual_address[i]);
     }
