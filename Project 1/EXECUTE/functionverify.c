@@ -11,7 +11,7 @@
 #define FALSE 0
 
 int bss_value;
-int data_value = 123456789;
+int data_value = 12345;
 
 int code_function() {
     return 0;
