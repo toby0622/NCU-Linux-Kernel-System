@@ -5,29 +5,36 @@
 #include <time.h>
 #include <stdint.h>
 
+#define TRUE 1
+#define FALSE 0
+
 int main() {
-    int vir_len = 3;
-    int a=0, b=0, c=0;
-    uintptr_t vir_addr[3] = {&a, &b, &c};
+    int virtual_address_length = 3;
+    int a = 0;
+    int b = 0;
+    int c = 0;
+
+    uintptr_t virtual_address[3] = {&a, &b, &c};
 
     int i=0;
-    for(i=0;i<vir_len;i++) {
-        printf("i = %d ; vir_addr = %lx\n", i, vir_addr[i]);
+
+    for (i = 0; i < virtual_address_length; i++) {
+        printf("i = %d; virtual_address = %lx\n", i, virtual_address[i]);
     }
 
-    int phy_len = 3;
-    uintptr_t phy_addr[3];
+    int physical_address_length = 3;
+    uintptr_t physical_address[3];
 
-    int copy = syscall(548, vir_addr, vir_len, phy_addr, phy_len);
+    int copy = syscall(548, virtual_address, virtual_address_length, physical_address, physical_address_length);
 
     printf("test\n");
-    printf("len_phs = %d\n", phy_len);
+    printf("len_phs = %d\n", physical_address_length);
     
-    for(i=0;i<vir_len;i++) {
-        printf("i = %d ; vir_addr = %lx ; phy_addr = %lx\n", i, vir_addr[i], phy_addr[i]);
+    for (i = 0; i < virtual_address_length; i++) {
+        printf("i = %d; virtual_address = %lx; physical_address = %lx\n", i, virtual_address[i], physical_address[i]);
     }
 
-    while(1);
+    while(TRUE);
 
     return a;
 }
