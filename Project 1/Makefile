@@ -1,3 +1,4 @@
+CFLAGS=-std=c99
 # SPDX-License-Identifier: GPL-2.0
 VERSION = 5
 PATCHLEVEL = 17
