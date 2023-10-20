@@ -1,4 +1,4 @@
-// address result checker: collaborate with "devmem" function
+// address result checker: should be collaborated with "devmem" function
 
 #include <stdio.h>
 #include <unistd.h>
