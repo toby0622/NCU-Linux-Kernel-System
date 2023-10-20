@@ -15,7 +15,13 @@
 
 ---
 
-## 
+## 參考資料
+
+* Kernel Compile
+
+
+* Debug
+
 
 ---
 
@@ -25,7 +31,7 @@
 
 <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/763ecae4-9ded-4a81-a8b3-0c8f1f50902f)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/d53b22d2-5f28-4f89-b056-1b99e71c94c8)
 
 * addresstransform.c
 
