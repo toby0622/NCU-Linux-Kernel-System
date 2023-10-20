@@ -15,7 +15,7 @@
 
 ---
 
-## SYSCALL DESIGN
+## SYSCALL 設計
 
 * addresstransform.c
 
