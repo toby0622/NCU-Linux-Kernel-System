@@ -16,7 +16,9 @@ int main() {
 
     uintptr_t virtual_address[3] = {&a, &b, &c};
 
-    int i=0;
+    int i = 0;
+
+    printf("virtual_address_length = %d\n", virtual_address_length);
 
     for (i = 0; i < virtual_address_length; i++) {
         printf("i = %d; virtual_address = %lx\n", i, virtual_address[i]);
@@ -27,8 +29,7 @@ int main() {
 
     int copy = syscall(548, virtual_address, virtual_address_length, physical_address, physical_address_length);
 
-    printf("test\n");
-    printf("len_phs = %d\n", physical_address_length);
+    printf("physical_address_length = %d\n", physical_address_length);
     
     for (i = 0; i < virtual_address_length; i++) {
         printf("i = %d; virtual_address = %lx; physical_address = %lx\n", i, virtual_address[i], physical_address[i]);
