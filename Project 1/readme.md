@@ -37,11 +37,10 @@
 4. <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
 5. <https://hackmd.io/@combo-tw/Linux-%E8%AE%80%E6%9B%B8%E6%9C%83/%2F%40combo-tw%2FBJlTwJUABB>
 6. <https://blog.csdn.net/qq_30624591/article/details/88544739>
-7. <https://zhuanlan.zhihu.com/p/575667017>
-8. <https://zhuanlan.zhihu.com/p/490504522>
-9. <https://blog.gtwang.org/programming/pthread-multithreading-programming-in-c-tutorial/>
-10. <https://askubuntu.com/questions/1435918/terminal-not-opening-on-ubuntu-22-04-on-virtual-box-7-0-0>
-11. <https://stackoverflow.com/questions/41090469/linux-kernel-how-to-get-physical-address-memory-management>
+7. <https://zhuanlan.zhihu.com/p/490504522>
+8. <https://blog.gtwang.org/programming/pthread-multithreading-programming-in-c-tutorial/>
+9. <https://askubuntu.com/questions/1435918/terminal-not-opening-on-ubuntu-22-04-on-virtual-box-7-0-0>
+10. <https://stackoverflow.com/questions/41090469/linux-kernel-how-to-get-physical-address-memory-management>
 
 ---
 
@@ -188,6 +187,18 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
 ---
 
 ## Physical Address 結果之驗證
+
+* 驗證方法
+
+利用 Linux 內建之 devmem 功能直接對特定地址進行讀取和修改資料值，並對該特定地址進行監測輸出來確認 Physical Address 的正確性。
+
+<https://zhuanlan.zhihu.com/p/575667017>
+
+* test2.c
+
+```c
+
+```
 
 ---
 
