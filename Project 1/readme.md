@@ -185,3 +185,11 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
 ```
 
 ---
+
+## Physical Address 結果之驗證
+
+---
+
+## Multi-Thread Program 的 Memory 共用情況
+
+---
