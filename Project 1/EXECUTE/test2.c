@@ -43,8 +43,6 @@ int main() {
     }
 
     while(TRUE) {
-        scanf("%d", &block_input);
-
         printf("pid = %d\n", (int)getpid());
         printf("segment\tvalue\tvir_addr\tphy_addr\n");
         printf("stack\t%d\t%lx\t%lx\n", stack_value, virtual_address[0], physical_address[0]);
@@ -53,6 +51,13 @@ int main() {
         printf("bss\t%d\t%lx\t%lx\n", bss_value, virtual_address[3], physical_address[3]);
         printf("data\t%d\t%lx\t%lx\n", data_value, virtual_address[4], physical_address[4]);
         printf("code\t%d\t%lx\t%lx\n", code_function(), virtual_address[5], physical_address[5]);
+        
+        printf("Options >> 1: Next, 0: Exit\n");
+        scanf("%d", &block_input);
+        
+        if (block_input == 0) {
+            break;
+        }
     }
 
     return 0;
