@@ -41,6 +41,7 @@
 8. <https://zhuanlan.zhihu.com/p/490504522>
 9. <https://blog.gtwang.org/programming/pthread-multithreading-programming-in-c-tutorial/>
 10. <https://askubuntu.com/questions/1435918/terminal-not-opening-on-ubuntu-22-04-on-virtual-box-7-0-0>
+11. <https://stackoverflow.com/questions/41090469/linux-kernel-how-to-get-physical-address-memory-management>
 
 ---
 
