@@ -19,19 +19,44 @@
 
 * Kernel Compile
 
+1. <https://www.cnblogs.com/aalan/p/16273585.html>
+2. <https://blog.csdn.net/weixin_42915431/article/details/121775873>
+3. <https://home.gamer.com.tw/creationDetail.php?sn=5696940>
 
 * Debug
 
+1. <https://blog.csdn.net/qq_36393978/article/details/118157426>
+2. <https://blog.csdn.net/qq_36393978/article/details/124274364>
+3. Additional Package Installed: dwarves, zstd, synaptics
+
+* System Call Design & Other Reference
+
+1. <https://lwn.net/Articles/604287/>
+2. <https://lwn.net/Articles/604515/>
+3. <https://www.kernel.org/doc/html/next/x86/x86_64/mm.html>
+4. <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
+5. <https://hackmd.io/@combo-tw/Linux-%E8%AE%80%E6%9B%B8%E6%9C%83/%2F%40combo-tw%2FBJlTwJUABB>
+6. <https://blog.csdn.net/qq_30624591/article/details/88544739>
+7. <https://zhuanlan.zhihu.com/p/575667017>
+8. <https://zhuanlan.zhihu.com/p/490504522>
+9. <https://blog.gtwang.org/programming/pthread-multithreading-programming-in-c-tutorial/>
+10. <https://askubuntu.com/questions/1435918/terminal-not-opening-on-ubuntu-22-04-on-virtual-box-7-0-0>
 
 ---
 
 ## SYSCALL 設計
 
-* 5-Level Paging　(自 Linux Kernel 4.11 後，Paging 改為 5-Level Structure 來滿足增加的記憶體容量)
+* 5-Level Paging (自 Linux Kernel 4.11 後，Paging 改為 5-Level Structure 來滿足增加的記憶體容量)
 
 <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
 
+* 5-Level Paging 示意圖
+
 ![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/d53b22d2-5f28-4f89-b056-1b99e71c94c8)
+
+* 設計思路
+
+我們先在 Kernel Stack 中定義兩個 Array，一個用來存放從 User Space 傳入的 Virtual Address，另一個用來存放對應的 Physical Address，並使用 copy_from_user() 將 User Space 傳入的 Virtual Address 複製到 Virtual Address Array 中。接著利用 Linux 定義的 Page Table Macro (包含 pgd_offset、p4d_offset、pud_offset、pmd_offset、pte_offset_map)，逐步從 Virtual Address 取得對應的 Physical Address。最後使用 copy_to_user() 將 Physical Address Array 中的結果複製回 User Space。
 
 * addresstransform.c
 
