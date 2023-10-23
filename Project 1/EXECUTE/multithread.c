@@ -1,3 +1,5 @@
+// objective 2: design a multi-thread program using the new system call to show memory areas shared by threads
+
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -11,9 +13,10 @@ int data_value = 123;
 int code_function() {
     return 0;
 }
+
 static __thread int thread_local_storage_value = 246;
 
-
+// multi-thread process: t1
 void *thread1(void *arg) {
     sleep(2);
     int stack_value = 100;
@@ -26,30 +29,32 @@ void *thread1(void *arg) {
     unsigned long code = (unsigned long)code_function;
 
     int len = 7;
-    unsigned long vir_addrs[7] = {TLS, stack, lib, heap, bss, data, code};
-    unsigned long phy_addrs[7];
+    unsigned long virtual_address[7] = {TLS, stack, lib, heap, bss, data, code};
+    unsigned long physical_address[7];
 
-    long copy = syscall(548, vir_addrs, len, phy_addrs, len);
+    long copy = syscall(548, virtual_address, len, physical_address, len);
+
     if (copy < 0) {
-        printf("address transfer failed!!");
+        printf("transfer error: virtual to physical");
         exit(1);
     }
-
 
     printf("============= thread1 =============\n");
     printf("pid = %d  tid = %d\n", (int)getpid(), (int)gettid());
     printf("segment\tvir_addr\tphy_addr\n");
-    printf("TLS\t%lx\t%lx\n", vir_addrs[0], phy_addrs[0]);
-    printf("stack\t%lx\t%lx\n", vir_addrs[1], phy_addrs[1]);
-    printf("lib\t%lx\t%lx\n", vir_addrs[2], phy_addrs[2]);
-    printf("heap\t%lx\t%lx\n", vir_addrs[3], phy_addrs[3]);
-    printf("bss\t%lx\t%lx\n", vir_addrs[4], phy_addrs[4]);
-    printf("data\t%lx\t%lx\n", vir_addrs[5], phy_addrs[5]);
-    printf("code\t%lx\t%lx\n", vir_addrs[6], phy_addrs[6]);
+    printf("TLS\t%lx\t%lx\n", virtual_address[0], physical_address[0]);
+    printf("stack\t%lx\t%lx\n", virtual_address[1], physical_address[1]);
+    printf("lib\t%lx\t%lx\n", virtual_address[2], physical_address[2]);
+    printf("heap\t%lx\t%lx\n", virtual_address[3], physical_address[3]);
+    printf("bss\t%lx\t%lx\n", virtual_address[4], physical_address[4]);
+    printf("data\t%lx\t%lx\n", virtual_address[5], physical_address[5]);
+    printf("code\t%lx\t%lx\n", virtual_address[6], physical_address[6]);
 
-    pthread_exit(NULL); // 離開子執行緒
+    // child thread process exit
+    pthread_exit(NULL);
 }
 
+// multi-thread process: t2
 void *thread2(void *arg) {
     sleep(4);
     int stack_value = 200;
@@ -62,31 +67,32 @@ void *thread2(void *arg) {
     unsigned long code = (unsigned long)code_function;
 
     int len = 7;
-    unsigned long vir_addrs[7] = {TLS, stack, lib, heap, bss, data, code};
-    unsigned long phy_addrs[7];
+    unsigned long virtual_address[7] = {TLS, stack, lib, heap, bss, data, code};
+    unsigned long physical_address[7];
 
-    long copy = syscall(548, vir_addrs, len, phy_addrs, len);
+    long copy = syscall(548, virtual_address, len, physical_address, len);
+
     if (copy < 0) {
-        printf("address transfer failed!!");
+        printf("transfer error: virtual to physical");
         exit(1);
     }
-
 
     printf("============= thread2 =============\n");
     printf("pid = %d  tid = %d\n", (int)getpid(), (int)gettid());
     printf("segment\tvir_addr\tphy_addr\n");
-    printf("TLS\t%lx\t%lx\n", vir_addrs[0], phy_addrs[0]);
-    printf("stack\t%lx\t%lx\n", vir_addrs[1], phy_addrs[1]);
-    printf("lib\t%lx\t%lx\n", vir_addrs[2], phy_addrs[2]);
-    printf("heap\t%lx\t%lx\n", vir_addrs[3], phy_addrs[3]);
-    printf("bss\t%lx\t%lx\n", vir_addrs[4], phy_addrs[4]);
-    printf("data\t%lx\t%lx\n", vir_addrs[5], phy_addrs[5]);
-    printf("code\t%lx\t%lx\n", vir_addrs[6], phy_addrs[6]);
+    printf("TLS\t%lx\t%lx\n", virtual_address[0], physical_address[0]);
+    printf("stack\t%lx\t%lx\n", virtual_address[1], physical_address[1]);
+    printf("lib\t%lx\t%lx\n", virtual_address[2], physical_address[2]);
+    printf("heap\t%lx\t%lx\n", virtual_address[3], physical_address[3]);
+    printf("bss\t%lx\t%lx\n", virtual_address[4], physical_address[4]);
+    printf("data\t%lx\t%lx\n", virtual_address[5], physical_address[5]);
+    printf("code\t%lx\t%lx\n", virtual_address[6], physical_address[6]);
 
-
-    pthread_exit(NULL); // 離開子執行緒
+    // child thread process exit
+    pthread_exit(NULL);
 }
 
+// multi-thread process: t3
 void *thread3(void *arg) {
     sleep(6);
     int stack_value = 300;
@@ -99,36 +105,35 @@ void *thread3(void *arg) {
     unsigned long code = (unsigned long)code_function;
 
     int len = 7;
-    unsigned long vir_addrs[7] = {TLS, stack, lib, heap, bss, data, code};
-    unsigned long phy_addrs[7];
+    unsigned long virtual_address[7] = {TLS, stack, lib, heap, bss, data, code};
+    unsigned long physical_address[7];
 
-    long copy = syscall(548, vir_addrs, len, phy_addrs, len);
+    long copy = syscall(548, virtual_address, len, physical_address, len);
+
     if (copy < 0) {
-        printf("address transfer failed!!");
+        printf("transfer error: virtual to physical");
         exit(1);
     }
-
 
     printf("============= thread3 =============\n");
     printf("pid = %d  tid = %d\n", (int)getpid(), (int)gettid());
     printf("segment\tvir_addr\tphy_addr\n");
-    printf("TLS\t%lx\t%lx\n", vir_addrs[0], phy_addrs[0]);
-    printf("stack\t%lx\t%lx\n", vir_addrs[1], phy_addrs[1]);
-    printf("lib\t%lx\t%lx\n", vir_addrs[2], phy_addrs[2]);
-    printf("heap\t%lx\t%lx\n", vir_addrs[3], phy_addrs[3]);
-    printf("bss\t%lx\t%lx\n", vir_addrs[4], phy_addrs[4]);
-    printf("data\t%lx\t%lx\n", vir_addrs[5], phy_addrs[5]);
-    printf("code\t%lx\t%lx\n", vir_addrs[6], phy_addrs[6]);
+    printf("TLS\t%lx\t%lx\n", virtual_address[0], physical_address[0]);
+    printf("stack\t%lx\t%lx\n", virtual_address[1], physical_address[1]);
+    printf("lib\t%lx\t%lx\n", virtual_address[2], physical_address[2]);
+    printf("heap\t%lx\t%lx\n", virtual_address[3], physical_address[3]);
+    printf("bss\t%lx\t%lx\n", virtual_address[4], physical_address[4]);
+    printf("data\t%lx\t%lx\n", virtual_address[5], physical_address[5]);
+    printf("code\t%lx\t%lx\n", virtual_address[6], physical_address[6]);
 
-
-    pthread_exit(NULL); // 離開子執行緒
+    // child thread process exit
+    pthread_exit(NULL);
 }
 
-// 主程式
 int main() {
     pthread_t t1, t2, t3;
 
-    printf("syscall\n"); // Syscall
+    printf("virtual to physical system call\n");
 
     pthread_create(&t1, NULL, thread1, NULL);
     pthread_create(&t2, NULL, thread2, NULL);
@@ -145,27 +150,26 @@ int main() {
     unsigned long code = (unsigned long)code_function;
 
     int len = 7;
-    unsigned long vir_addrs[7] = {TLS, stack, lib, heap, bss, data, code};
-    unsigned long phy_addrs[7];
+    unsigned long virtual_address[7] = {TLS, stack, lib, heap, bss, data, code};
+    unsigned long physical_address[7];
 
-    long copy = syscall(548, vir_addrs, len, phy_addrs, len);
+    long copy = syscall(548, virtual_address, len, physical_address, len);
+
     if (copy < 0) {
-        printf("address transfer failed!!");
+        printf("transfer error: virtual to physical");
         exit(1);
     }
-
 
     printf("============= main =============\n");
     printf("pid = %d  tid = %d\n", (int)getpid(), (int)gettid());
     printf("segment\tvir_addr\tphy_addr\n");
-    printf("TLS\t%lx\t%lx\n", vir_addrs[0], phy_addrs[0]);
-    printf("stack\t%lx\t%lx\n", vir_addrs[1], phy_addrs[1]);
-    printf("lib\t%lx\t%lx\n", vir_addrs[2], phy_addrs[2]);
-    printf("heap\t%lx\t%lx\n", vir_addrs[3], phy_addrs[3]);
-    printf("bss\t%lx\t%lx\n", vir_addrs[4], phy_addrs[4]);
-    printf("data\t%lx\t%lx\n", vir_addrs[5], phy_addrs[5]);
-    printf("code\t%lx\t%lx\n", vir_addrs[6], phy_addrs[6]);
-
+    printf("TLS\t%lx\t%lx\n", virtual_address[0], physical_address[0]);
+    printf("stack\t%lx\t%lx\n", virtual_address[1], physical_address[1]);
+    printf("lib\t%lx\t%lx\n", virtual_address[2], physical_address[2]);
+    printf("heap\t%lx\t%lx\n", virtual_address[3], physical_address[3]);
+    printf("bss\t%lx\t%lx\n", virtual_address[4], physical_address[4]);
+    printf("data\t%lx\t%lx\n", virtual_address[5], physical_address[5]);
+    printf("code\t%lx\t%lx\n", virtual_address[6], physical_address[6]);
 
     printf("----------- thread address ------------\n");
     printf("t1 = %p\n", &t1);
