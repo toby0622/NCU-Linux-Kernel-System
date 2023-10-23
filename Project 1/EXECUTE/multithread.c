@@ -6,12 +6,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <syscall.h>
+#include <sys/syscall.h>
 
 int bss_value;
 int data_value = 123;
 int code_function() {
     return 0;
+}
+
+pid_t gettid() {
+    return syscall(SYS_gettid);
 }
 
 static __thread int thread_local_storage_value = 246;
@@ -160,7 +164,7 @@ int main() {
         exit(1);
     }
 
-    printf("============= main =============\n");
+    printf("============== main ==============\n");
     printf("pid = %d  tid = %d\n", (int)getpid(), (int)gettid());
     printf("segment\tvir_addr\tphy_addr\n");
     printf("TLS\t%lx\t%lx\n", virtual_address[0], physical_address[0]);
@@ -171,12 +175,10 @@ int main() {
     printf("data\t%lx\t%lx\n", virtual_address[5], physical_address[5]);
     printf("code\t%lx\t%lx\n", virtual_address[6], physical_address[6]);
 
-    printf("----------- thread address ------------\n");
+    printf("--------- thread address ----------\n");
     printf("t1 = %p\n", &t1);
     printf("t2 = %p\n", &t2);
     printf("t3 = %p\n", &t3);
-
-    while(1);
 
     return 0;
 }
