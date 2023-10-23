@@ -267,4 +267,17 @@ int main() {
 
 ## Multi-Thread Program 的 Memory 共用情況
 
+* 驗證方法
+
+於 Linux 中撰寫一個 Multi-Thread 的測試，並輸出各線程所使用的 Memory Area，以此來分析多線程的 Memory 共用情況。
+
+<https://blog.csdn.net/weixin_42250655/article/details/105234980>  
+<https://blog.csdn.net/stpeace/article/details/43282611>
+
+* multithread.c
+
+```c
+
+```
+
 ---
