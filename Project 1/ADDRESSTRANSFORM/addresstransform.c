@@ -101,7 +101,6 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
     unsigned long physical_address[virtual_address_length];
 
     // original: unsigned long copy_from_user(void * to, const void __user * from, unsigned long n);
-    //
     long copy_virtual_address = copy_from_user(virtual_address, initial, sizeof(unsigned long)*virtual_address_length);
 
     printk("virtual_address_length = %d", virtual_address_length);
