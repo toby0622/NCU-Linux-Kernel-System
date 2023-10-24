@@ -290,7 +290,7 @@ int main() {
 
 ---
 
-## Multi-Thread Program 的 Memory 共用情況
+## Multi-Thread Program 於 Memory 中的分布和共用情況
 
 * 驗證方法
 
