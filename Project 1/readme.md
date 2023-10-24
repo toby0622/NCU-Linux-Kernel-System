@@ -15,6 +15,14 @@
 
 ---
 
+## 開發環境
+
+* Oracle VM VirtualBox
+* Ubuntu 20.04 LTS
+* Kernel Version 5.15.86（Version 5.17.7 After Kernel Compile）
+
+---
+
 ## 參考資料
 
 * Kernel Compile
