@@ -46,7 +46,7 @@
 
 ## SYSCALL 設計
 
-* 5-Level Paging (自 Linux Kernel 4.11 後，Paging 改為 5-Level Structure 來滿足增加的記憶體容量)
+* 5-Level Paging（自 Linux Kernel 4.11 後，Paging 改為 5-Level Structure 來滿足增加的記憶體容量）
 
 <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
 
@@ -164,7 +164,6 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
     unsigned long physical_address[virtual_address_length];
 
     // original: unsigned long copy_from_user(void * to, const void __user * from, unsigned long n);
-    //
     long copy_virtual_address = copy_from_user(virtual_address, initial, sizeof(unsigned long)*virtual_address_length);
 
     printk("virtual_address_length = %d", virtual_address_length);
@@ -190,8 +189,10 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
 
 * 驗證方法
 
-利用 Linux 內建之 devmem 功能直接對特定地址進行讀取和修改資料值，並對該特定地址進行監測輸出來確認 Physical Address 的正確性。
+利用 devmem2 功能直接對特定地址進行讀取和修改資料值，並對該特定地址進行監測輸出來確認 Physical Address 的正確性。  
+（也可使用 Linux 內建之 devmem，不過該功能需於 Kernel Compile 時在 config 中進行開啟）
 
+<https://blog.csdn.net/happen23/article/details/113700200>
 <https://zhuanlan.zhihu.com/p/575667017>
 
 * test2.c
@@ -262,6 +263,22 @@ int main() {
     return 0;
 }
 ```
+
+* 輸出結果
+
+
+
+* devmem 檢查（檢查 data 段）
+
+
+
+* devmem 修改 Value（修改 data 段）
+
+
+
+* 驗證成功
+
+
 
 ---
 
@@ -462,5 +479,17 @@ int main() {
     return 0;
 }
 ```
+
+* 輸出結果
+
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/d2762e82-08d7-4f66-ae9b-792412b72922)
+
+* Multi-Thread Proecess 在 Memory 中的堆疊
+
+
+
+* Memory 共用情況探討
+
+
 
 ---
