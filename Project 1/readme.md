@@ -189,8 +189,7 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
 
 * 驗證方法
 
-利用 devmem2 功能直接對特定地址進行讀取和修改資料值，並對該特定地址進行監測輸出來確認 Physical Address 的正確性。  
-（也可使用 Linux 內建之 devmem，不過該功能需於 Kernel Compile 時在 config 中進行開啟）
+利用 devmem2 功能直接對特定地址進行讀取和修改資料值，並對該特定地址進行監測輸出來確認 Physical Address 的正確性。
 
 <https://blog.csdn.net/happen23/article/details/113700200>
 <https://zhuanlan.zhihu.com/p/575667017>
