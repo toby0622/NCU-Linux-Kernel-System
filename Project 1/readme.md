@@ -190,8 +190,9 @@ SYSCALL_DEFINE4(my_get_physical_addresses,
 * 驗證方法
 
 利用 devmem2 功能直接對特定地址進行讀取和修改資料值，並對該特定地址進行監測輸出來確認 Physical Address 的正確性。
+（需於 Kernel 編譯時執行 makeconfig，進入 Kernel Hacking 分類，並將限制 devmem 功能之 Filter access to /dev/mem 關閉，才能正常調用）
 
-<https://blog.csdn.net/happen23/article/details/113700200>
+<https://blog.csdn.net/happen23/article/details/113700200>  
 <https://zhuanlan.zhihu.com/p/575667017>
 
 * test2.c
@@ -265,19 +266,27 @@ int main() {
 
 * 輸出結果
 
+我們先簡單的將 Code、Data、BSS、Heap 和 Stack 的 Virtual Address 和轉換後的 Physical Address 進行輸出，結果如下圖所示。
 
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/4a6f6331-7071-4608-a145-191a2f2d460f)
 
-* devmem 檢查（檢查 data 段）
+* devmem2 檢查（檢查 Data Segment）
 
+為了確認我們轉出來的 Physical Address 是正確的，以 Data Segment 做舉例，當透過 devmem2 直接讀取 0x2046d1010（Data Segment Physical Address）時，我們可以看到他回傳的 Data Value 是 0x3039，也就是我們所給予初始值之 12345（Hex to Dec）。
 
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/614a72cd-736f-4611-b4ea-364457e2cecc)
 
-* devmem 修改 Value（修改 data 段）
+* devmem 修改 Value（修改 Data Segment）
 
+同時，由於 devmem2 可以直接對特定記憶體位置進行賦值，為了進行二次確認，我們將原先的 12345 改為 54321 重新寫入至 Data 中。
 
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/4a30e5fd-8eb1-4d7e-9241-1a3b5f5dce4e)
 
 * 驗證成功
 
+回到最開始撰寫的測試代碼，輸入 1 進行新一輪檢測，可以發現 Data 的值已經被更改為 54321，至此 Virtural Address to Physical Address 功能圓滿完成並完成驗證。
 
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/088d6d23-ceb5-43b9-9447-39b0e33c9db0)
 
 ---
 
