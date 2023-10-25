@@ -500,13 +500,23 @@ int main() {
 
 * 輸出結果
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/d2762e82-08d7-4f66-ae9b-792412b72922)
-
-* Multi-Thread Proecess 在 Memory 中的堆疊
-
-
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/16831ee6-4dec-4c9d-9eb6-73841dc6bd2c)
 
 * Memory 共用情況探討
+
+我們由輸出結果可以發現，執行單一的 Multi-Thread 程式，不同 Thread（thread1、thread2、thread3）之間的 Code、Data、BSS 和 Library 段是共用的，Stack 和 Heap 段則是各自配置了一部分記憶體。
+
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/11b7ccbf-88eb-46a5-8956-8c91d7af1cc7)
+
+如果前面的部分不夠清楚，我們可以簡易修改 multithread.c，在最後面加上一個 while(TRUE) 來 Block 程式進程，並利用 sudo cat /proc/<pid>/maps 來進行對照，會發現 Stack 和 Heap 確實比較特別，可以看到 [heap] 下面額外配置的空間就是 Thread Heap 的部分。此外，我們還發現 Library 之間有一大堆空白，對照得出該部分即為 Thread Stack。而關於 TLS（Thread Local Storage）則是會基於各 Thread 複製一份到其 Thread Stack 的頂端，至於 Main 的部分則會配置在所有 Thread Stack 的上方。
+
+<https://www.cnblogs.com/arnoldlu/p/10272466.html>
+
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/1df4ddb8-4f93-4de7-925a-74a98ccc7f50)
+
+* Multi-Thread 在 Memory 中的堆疊
+
+由前面所進行的分析可以得出 Multi-Thread 在 Memory 中的配置情況應如下圖：
 
 
 
