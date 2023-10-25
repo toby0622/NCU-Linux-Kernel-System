@@ -518,6 +518,6 @@ int main() {
 
 由前面所進行的分析可以得出 Multi-Thread 在 Memory 中的配置情況應如下圖：
 
-
+![drawio](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/c8e88195-56fe-4885-9a86-2648fcff8807)
 
 ---
