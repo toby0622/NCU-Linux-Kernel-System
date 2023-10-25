@@ -18,6 +18,7 @@ pid_t gettid() {
     return syscall(SYS_gettid);
 }
 
+// requirement: using __thread to create TLS
 static __thread int thread_local_storage_value = 246;
 
 // multi-thread process: t1
@@ -27,6 +28,7 @@ void *thread1(void *arg) {
     unsigned long TLS = (unsigned long)&thread_local_storage_value;
     unsigned long stack = (unsigned long)&stack_value;
     unsigned long lib = (unsigned long)getpid;
+    // requirement: using malloc to create heap
     unsigned long heap = (unsigned long)malloc(sizeof(int));
     unsigned long bss = (unsigned long)&bss_value;
     unsigned long data = (unsigned long)&data_value;
