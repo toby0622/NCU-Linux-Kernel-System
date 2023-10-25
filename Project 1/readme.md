@@ -506,7 +506,7 @@ int main() {
 
 我們由輸出結果可以發現，執行單一的 Multi-Thread 程式，不同 Thread（thread1、thread2、thread3）之間的 Code、Data、BSS 和 Library 段是共用的，Stack 和 Heap 段則是各自配置了一部分記憶體。
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/11b7ccbf-88eb-46a5-8956-8c91d7af1cc7)
+![螢幕擷取畫面 2023-10-24 200123](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/691cb1fe-1234-4a81-ad35-434388fdfd5f)
 
 如果前面的部分不夠清楚，我們可以簡易修改 multithread.c，在最後面加上一個 while(TRUE) 來 Block 程式進程，並利用 sudo cat /proc/<pid>/maps 來進行對照，會發現 Stack 和 Heap 確實比較特別，可以看到 [heap] 下面額外配置的空間就是 Thread Heap 的部分。此外，我們還發現 Library 之間有一大堆空白，對照得出該部分即為 Thread Stack。而關於 TLS（Thread Local Storage）則是會基於各 Thread 複製一份到其 Thread Stack 的頂端，至於 Main 的部分則會配置在所有 Thread Stack 的上方。
 
