@@ -17,38 +17,103 @@
 
 ## 開發環境
 
-* Oracle VM VirtualBox
-* Ubuntu 20.04 LTS
-* Kernel Version 5.15.86（Version 5.17.7 After Kernel Compile）
+* Virtual Machine: Oracle VM VirtualBox
+* Operating System: Ubuntu 20.04 LTS
+* Linux Kernel: Kernel Version 5.15.86 -> Kernel Version 5.17.7 After Kernel Compile
 
 ---
 
-## 參考資料
+## 環境架設
 
-* Kernel Compile
+* 在架設完成虛擬機後，首先要做的就是進行系統更新。
 
-1. <https://www.cnblogs.com/aalan/p/16273585.html>
-2. <https://blog.csdn.net/weixin_42915431/article/details/121775873>
-3. <https://home.gamer.com.tw/creationDetail.php?sn=5696940>
+```shell
+sudo apt update && sudo apt upgrade -y
+```
 
-* Debug
+* 安裝編譯 Linux Kernel 所需的相關 Dependencies，順帶安裝 Vim 用以直接檢視文件。
 
-1. <https://blog.csdn.net/qq_36393978/article/details/118157426>
-2. <https://blog.csdn.net/qq_36393978/article/details/124274364>
-3. Additional Package Installed: dwarves, zstd, synaptics
+```shell
+sudo apt install build-essential libncurses-dev libssl-dev libelf-dev bison flex -y
+sudo apt install vim -y
+```
 
-* System Call Design & Other Reference
+* 清除已經安裝的 Packages（可選）。
 
-1. <https://lwn.net/Articles/604287/>
-2. <https://lwn.net/Articles/604515/>
-3. <https://www.kernel.org/doc/html/next/x86/x86_64/mm.html>
-4. <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
-5. <https://hackmd.io/@combo-tw/Linux-%E8%AE%80%E6%9B%B8%E6%9C%83/%2F%40combo-tw%2FBJlTwJUABB>
-6. <https://blog.csdn.net/qq_30624591/article/details/88544739>
-7. <https://zhuanlan.zhihu.com/p/490504522>
-8. <https://blog.gtwang.org/programming/pthread-multithreading-programming-in-c-tutorial/>
-9. <https://askubuntu.com/questions/1435918/terminal-not-opening-on-ubuntu-22-04-on-virtual-box-7-0-0>
-10. <https://stackoverflow.com/questions/41090469/linux-kernel-how-to-get-physical-address-memory-management>
+```shell
+sudo apt clean && sudo apt autoremove -y
+```
+
+* 利用 wget 通過 cdn 下載 Linux Kernel（不推薦 Kernel Version 6，新版本在新增 SYSCALL 上有變動，會多出很多的坑，非必要不用自找麻煩），並將 Source Code 解壓縮。
+
+```shell
+wget -P ~/ https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.17.7.tar.xz
+tar -xvf ~/linux-5.17.7.tar.xz -C ~/
+```
+
+* 檢查當前的 Kernel Version（如果是升級 Kernel Version，在安裝完新的 Kernel 後此值會被修改更新）。
+
+```shell
+uname -r
+```
+
+* 進入先前解壓縮完的 Linux Kernel Source Code，並建立新的資料夾用以存放即將設計的 SYSCALL。
+
+```shell
+cd ~/linux-5.17.7/
+mkdir mysyscall
+```
+
+* 創建新的 SYSCALL 並添加 SYSCALL 所需的 C Code（詳細代碼撰寫於下一章節「SYSCALL 設計」）。
+
+```shell
+vim mysyscall/addresstransform.c
+```
+
+* 創建新的 SYSCALL 調用之 Makefile 並添加代碼。
+
+```shell
+vim mysyscall/Makefile
+i -> Insert
+obj-y := addresstransform.o
+:wq -> Write File & Quit Vim
+```
+
+* 將 SYSCALL 調用增加至 Kernel 的 Makefile 中。
+
+```shell
+vim Makefile
+/core-y    += -> Search "core-y    +="
+i -> Insert
+core-y    += ... mysyscall/
+```
+
+* 將 SYSCALL 調用增加至 Kernel 的 Function Header 中。
+
+```shell
+vim include/linux/syscalls.h
+i -> Insert
+asmlinkage long my_get_physical_addresses(unsigned long* initial, int virtual_address_length, unsigned long* result, int physical_address_length);
+```
+
+* 將 SYSCALL 調用增加至 Kernel 的 SYSTEM_TABLE 中。
+
+```shell
+vim arch/x86/entry/syscalls/syscall_64.tbl
+i -> Insert
+548     64     my_get_physical_addresses    sys_my_get_physical_addresses
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -521,3 +586,34 @@ int main() {
 ![drawio](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/21b13d0d-fa04-4ed0-aa3d-1263c73bed77)
 
 ---
+
+## 建構中碰到的各式問題
+
+---
+
+## 參考資料（部分參考資料已附於分析中）
+
+* Kernel Compile
+
+1. <https://www.cnblogs.com/aalan/p/16273585.html>
+2. <https://blog.csdn.net/weixin_42915431/article/details/121775873>
+3. <https://home.gamer.com.tw/creationDetail.php?sn=5696940>
+
+* Debug
+
+1. <https://blog.csdn.net/qq_36393978/article/details/118157426>
+2. <https://blog.csdn.net/qq_36393978/article/details/124274364>
+3. Additional Package Installed: dwarves, zstd, synaptics
+
+* System Call Design & Other Reference
+
+1. <https://lwn.net/Articles/604287/>
+2. <https://lwn.net/Articles/604515/>
+3. <https://www.kernel.org/doc/html/next/x86/x86_64/mm.html>
+4. <https://www.kernel.org/doc/html/next/x86/x86_64/5level-paging.html>
+5. <https://hackmd.io/@combo-tw/Linux-%E8%AE%80%E6%9B%B8%E6%9C%83/%2F%40combo-tw%2FBJlTwJUABB>
+6. <https://blog.csdn.net/qq_30624591/article/details/88544739>
+7. <https://zhuanlan.zhihu.com/p/490504522>
+8. <https://blog.gtwang.org/programming/pthread-multithreading-programming-in-c-tutorial/>
+9. <https://askubuntu.com/questions/1435918/terminal-not-opening-on-ubuntu-22-04-on-virtual-box-7-0-0>
+10. <https://stackoverflow.com/questions/41090469/linux-kernel-how-to-get-physical-address-memory-management>
