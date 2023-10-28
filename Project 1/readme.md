@@ -94,6 +94,7 @@ vim Makefile
 /core-y    += -> Search "core-y    +="
 i -> Insert
 core-y    += ... mysyscall/
+:wq -> Write File & Quit Vim
 ```
 
 * 將 SYSCALL 調用增加至 Kernel 的 Function Header 中
@@ -102,6 +103,7 @@ core-y    += ... mysyscall/
 vim include/linux/syscalls.h
 i -> Insert
 asmlinkage long my_get_physical_addresses(unsigned long* initial, int virtual_address_length, unsigned long* result, int physical_address_length);
+:wq -> Write File & Quit Vim
 ```
 
 * 將 SYSCALL 調用增加至 Kernel 的 SYSTEM_TABLE 中
@@ -110,6 +112,7 @@ asmlinkage long my_get_physical_addresses(unsigned long* initial, int virtual_ad
 vim arch/x86/entry/syscalls/syscall_64.tbl
 i -> Insert
 548     64     my_get_physical_addresses    sys_my_get_physical_addresses
+:wq -> Write File & Quit Vim
 ```
 
 * 創建 Linux Kernel .config 或直接複製舊有的 .config（此處選擇原先系統之 .config）
@@ -138,6 +141,8 @@ CONFIG_SYSTEM_TRUSTED_KEYS=""
 /CONFIG_SYSTEM_REVOCATION_KEYS -> Search "CONFIG_SYSTEM_REVOCATION_KEYS"
 i -> Insert
 CONFIG_SYSTEM_REVOCATION_KEYS=""
+
+:wq -> Write File & Quit Vim
 ```
 
 * 清理 Kernel Compile 結果（可選，有需要時使用）
