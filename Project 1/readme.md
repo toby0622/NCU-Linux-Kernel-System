@@ -25,52 +25,60 @@
 
 ## 環境架設
 
-* 在架設完成虛擬機後，首先要做的就是進行系統更新。
+* 在架設完成虛擬機後，首先要做的就是進行系統更新
 
 ```shell
 sudo apt update && sudo apt upgrade -y
 ```
 
-* 安裝編譯 Linux Kernel 所需的相關 Dependencies，順帶安裝 Vim 用以直接檢視文件。
+* 安裝編譯 Linux Kernel 所需的相關 Dependencies，順帶安裝 Vim 用以直接檢視文件
 
 ```shell
 sudo apt install build-essential libncurses-dev libssl-dev libelf-dev bison flex -y
 sudo apt install vim -y
 ```
 
-* 清除已經安裝的 Packages（可選）。
+* 安裝 Debug Linux Kernel 所需的額外套件
+
+```shell
+sudo apt-get install dwarves
+sudo apt-get install zstd
+sudo apt-get install synaptics
+```
+
+* 清除已經安裝的 Packages（可選）
 
 ```shell
 sudo apt clean && sudo apt autoremove -y
 ```
 
-* 利用 wget 通過 cdn 下載 Linux Kernel（不推薦 Kernel Version 6，新版本在新增 SYSCALL 上有變動，會多出很多的坑，非必要不用自找麻煩），並將 Source Code 解壓縮。
+* 利用 wget 通過 cdn 下載 Linux Kernel（不推薦 Kernel Version 6，新版本在新增 SYSCALL 上有變動，會多出很多的坑，非必要不用自找麻煩），並將 Source Code 解壓縮
 
 ```shell
 wget -P ~/ https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.17.7.tar.xz
 tar -xvf ~/linux-5.17.7.tar.xz -C ~/
 ```
 
-* 檢查當前的 Kernel Version（如果是升級 Kernel Version，在安裝完新的 Kernel 後此值會被修改更新）。
+* 檢查當前的 Kernel Version（如果是升級 Kernel Version，在安裝完新的 Kernel 後此值會被修改更新）
 
 ```shell
 uname -r
 ```
 
-* 進入先前解壓縮完的 Linux Kernel Source Code，並建立新的資料夾用以存放即將設計的 SYSCALL。
+* 進入先前解壓縮完的 Linux Kernel Source Code，並建立新的資料夾用以存放即將設計的 SYSCALL
 
 ```shell
 cd ~/linux-5.17.7/
 mkdir mysyscall
 ```
 
-* 創建新的 SYSCALL 並添加 SYSCALL 所需的 C Code（詳細代碼撰寫於下一章節「SYSCALL 設計」）。
+* 創建新的 SYSCALL 並添加 SYSCALL 所需的 C Code（詳細代碼撰寫於下一章節「SYSCALL 設計」）
 
 ```shell
 vim mysyscall/addresstransform.c
 ```
 
-* 創建新的 SYSCALL 調用之 Makefile 並添加代碼。
+* 創建新的 SYSCALL 調用之 Makefile 並添加代碼
 
 ```shell
 vim mysyscall/Makefile
@@ -79,7 +87,7 @@ obj-y := addresstransform.o
 :wq -> Write File & Quit Vim
 ```
 
-* 將 SYSCALL 調用增加至 Kernel 的 Makefile 中。
+* 將 SYSCALL 調用增加至 Kernel 的 Makefile 中
 
 ```shell
 vim Makefile
@@ -88,7 +96,7 @@ i -> Insert
 core-y    += ... mysyscall/
 ```
 
-* 將 SYSCALL 調用增加至 Kernel 的 Function Header 中。
+* 將 SYSCALL 調用增加至 Kernel 的 Function Header 中
 
 ```shell
 vim include/linux/syscalls.h
@@ -96,7 +104,7 @@ i -> Insert
 asmlinkage long my_get_physical_addresses(unsigned long* initial, int virtual_address_length, unsigned long* result, int physical_address_length);
 ```
 
-* 將 SYSCALL 調用增加至 Kernel 的 SYSTEM_TABLE 中。
+* 將 SYSCALL 調用增加至 Kernel 的 SYSTEM_TABLE 中
 
 ```shell
 vim arch/x86/entry/syscalls/syscall_64.tbl
@@ -104,16 +112,114 @@ i -> Insert
 548     64     my_get_physical_addresses    sys_my_get_physical_addresses
 ```
 
+* 創建 Linux Kernel .config 或直接複製舊有的 .config（此處選擇原先系統之 .config）
 
+```shell
+sudo cp -v /boot/config-$(uname -r) .config
+```
 
+* 調整 Kernel Compile 的相關參數
 
+若需使用 devmem 相關功能，要於此步驟關閉 Filter access to /dev/mem 選項，該功能才能正常運作（詳細請查看後續章節「Physical Address 結果之驗證」）。
 
+```shell
+sudo make menuconfig
+```
 
+* 調整 Kernel Compile 的驗證金鑰
 
+```shell
+vim .config
 
+/CONFIG_SYSTEM_TRUSTED_KEYS -> Search "CONFIG_SYSTEM_TRUSTED_KEYS"
+i -> Insert
+CONFIG_SYSTEM_TRUSTED_KEYS=""
 
+/CONFIG_SYSTEM_REVOCATION_KEYS -> Search "CONFIG_SYSTEM_REVOCATION_KEYS"
+i -> Insert
+CONFIG_SYSTEM_REVOCATION_KEYS=""
+```
 
+* 清理 Kernel Compile 結果（可選，有需要時使用）
 
+```shell
+# 清除包含 .config 的編譯文件（曾 Compile 過要完全重新開始）
+sudo make mrproper
+# 清除不包含 .config 的編譯文件（Compile 發生錯誤要再次嘗試前）
+sudo make clean
+```
+
+* 編譯安裝 Linux Kernel（nproc 可以查詢當前機器所有的 Logical Cores）
+
+echo $? 用於檢查狀態，若回傳為 0，可以進行下一步；若回傳不為 0，代表有錯誤發生，請去除 -j 平行化參數，僅執行前方 make 指令，並根據 Terminal 的 Error 提示進行排查（使用 -j 參數會平行分配任務加快 Compile 速度，但預設會跳過 Error 繼續往下跑，直到沒辦法 Compile 強制退出為止，導致回傳不為零，這種情況難以進行排查，改回使用 sudo make 會於錯誤地方停下提示）。
+
+```shell
+sudo make -j$(nproc)
+echo $?
+sudo make modules_install -j$(nproc)
+echo $?
+sudo make install -j$(nproc)
+echo $?
+```
+
+* 檢查 Kernel 有被正確安裝，於 grub 中確認即可重開機（新版 Ubuntu 預設會把新 Kernel 設為首要，舊版本可能會需要手動配置 Bootloader）
+
+```shell
+sudo update-grub
+sudo reboot
+```
+
+* 重開機後檢查 Kernel Version 是否正確，並撰寫 Tester 來檢查新的 SYSCALL 運作
+
+```shell
+uname -r
+```
+
+```c
+// test1.c
+
+#include <syscall.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <time.h>
+#include <stdint.h>
+
+#define TRUE 1
+#define FALSE 0
+
+int main() {
+    int virtual_address_length = 3;
+    int a = 0;
+    int b = 0;
+    int c = 0;
+
+    uintptr_t virtual_address[3] = {&a, &b, &c};
+
+    int i = 0;
+
+    printf("virtual_address_length = %d\n", virtual_address_length);
+
+    for (i = 0; i < virtual_address_length; i++) {
+        printf("i = %d; virtual_address = %lx\n", i, virtual_address[i]);
+    }
+
+    int physical_address_length = 3;
+    uintptr_t physical_address[3];
+
+    int copy = syscall(548, virtual_address, virtual_address_length, physical_address, physical_address_length);
+
+    printf("physical_address_length = %d\n", physical_address_length);
+    
+    for (i = 0; i < virtual_address_length; i++) {
+        printf("i = %d; virtual_address = %lx; physical_address = %lx\n", i, virtual_address[i], physical_address[i]);
+    }
+
+    while(TRUE);
+
+    return a;
+}
+```
 
 ---
 
