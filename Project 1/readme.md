@@ -700,9 +700,26 @@ int main() {
 
 ## 建構中碰到的各式問題
 
+* 編譯 Linux Kernel 報錯：No rule to make target ‘debian/canonical-certs.pem‘, needed by ‘certs/x509_certificate_list‘
+
+> 修改 CONFIG_SYSTEM_TRUSTED_KEYS，將其賦與空值。
+> 修改 CONFIG_SYSTEM_REVOCATION_KEYS，將其賦與空值。
+
+* 編譯 Linux Kernel 報錯：BTF: .tmp_vmlinux.btf: pahole (pahole) is not available
+
+> 缺乏 Debug 所需套件 Dwarves，sudo apt-get install dwarves 解決。
+
+* 編譯 Linux Kernel 報錯：zstd: command not found
+
+> 缺乏功能套件 zstd，sudo apt-get install zstd 解決。
+
+* GCC 編譯 Multi-Thread Code 錯誤：undefined reference to ‘pthread_create‘
+
+> pthread 並不屬於 Linux Standard Library，需於 gcc 編譯時加上 -lpthread 參數。
+
 ---
 
-## 參考資料（部分參考資料已附於分析中）
+## 參考資料（部分參考資料已附於前述分析中）
 
 * Kernel Compile
 
