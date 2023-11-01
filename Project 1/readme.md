@@ -236,7 +236,7 @@ int main() {
 
 * 5-Level Paging 示意圖
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/d53b22d2-5f28-4f89-b056-1b99e71c94c8)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc1.png)
 
 * 設計思路
 
@@ -452,25 +452,25 @@ int main() {
 
 我們先簡單的將 Code、Data、BSS、Heap 和 Stack 的 Virtual Address 和轉換後的 Physical Address 進行輸出，結果如下圖所示。
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/4a6f6331-7071-4608-a145-191a2f2d460f)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc7.png)
 
 * devmem2 檢查（檢查 Data Segment）
 
 為了確認我們轉出來的 Physical Address 是正確的，以 Data Segment 做舉例，當透過 devmem2 直接讀取 0x2046d1010（Data Segment Physical Address）時，我們可以看到他回傳的 Data Value 是 0x3039，也就是我們所給予初始值之 12345（Hex to Dec）。
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/614a72cd-736f-4611-b4ea-364457e2cecc)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc8.png)
 
 * devmem 修改 Value（修改 Data Segment）
 
 同時，由於 devmem2 可以直接對特定記憶體位置進行賦值，為了進行二次確認，我們將原先的 12345 改為 54321 重新寫入至 Data 中。
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/4a30e5fd-8eb1-4d7e-9241-1a3b5f5dce4e)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc9.png)
 
 * 驗證成功
 
 回到最開始撰寫的測試代碼，輸入 1 進行新一輪檢測，可以發現 Data 的值已經被更改為 54321，至此 Virtural Address to Physical Address 功能圓滿完成並完成驗證。
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/088d6d23-ceb5-43b9-9447-39b0e33c9db0)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc10.png)
 
 ---
 
@@ -676,25 +676,25 @@ int main() {
 
 * 輸出結果
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/16831ee6-4dec-4c9d-9eb6-73841dc6bd2c)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc12.png)
 
 * Memory 共用情況探討
 
 我們由輸出結果可以發現，執行單一的 Multi-Thread 程式，不同 Thread（thread1、thread2、thread3）之間的 Code、Data、BSS 和 Library 段是共用的，Stack 和 Heap 段則是各自配置了一部分記憶體。
 
-![螢幕擷取畫面 2023-10-24 200123](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/691cb1fe-1234-4a81-ad35-434388fdfd5f)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc11.png)
 
 如果前面的部分不夠清楚，我們可以簡易修改 multithread.c，在最後面加上一個 while(TRUE) 來 Block 程式進程，並利用 sudo cat /proc/<pid>/maps 來進行對照，會發現 Stack 和 Heap 確實比較特別，可以看到 [heap] 下面額外配置的空間就是 Thread Heap 的部分。此外，我們還發現 Library 之間有一大堆空白，對照得出該部分即為 Thread Stack。而關於 TLS（Thread Local Storage）則是會基於各 Thread 複製一份到其 Thread Stack 的頂端，至於 Main 的部分則會配置在所有 Thread Stack 的上方。
 
 <https://www.cnblogs.com/arnoldlu/p/10272466.html>
 
-![image](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/1df4ddb8-4f93-4de7-925a-74a98ccc7f50)
+![image](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Screenshots/sc13.png)
 
 * Multi-Thread 在 Memory 中的堆疊
 
 由前面所進行的分析可以得出 Multi-Thread 在 Memory 中的配置情況應如下圖：
 
-![drawio](https://github.com/toby0622/NCU-Linux-Kernel-System/assets/52705034/21b13d0d-fa04-4ed0-aa3d-1263c73bed77)
+![drawio](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/Drawio/drawio.png)
 
 ---
 
