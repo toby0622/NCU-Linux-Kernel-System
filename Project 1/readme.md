@@ -78,7 +78,7 @@ mkdir mysyscall
 vim mysyscall/addresstransform.c
 ```
 
-* 創建新的 SYSCALL 調用之 Makefile 並添加代碼(Makefile特殊檔案)
+* 創建新的 SYSCALL 調用之 Makefile 並添加代碼（Makefile 為特殊檔案，用以包含編譯規則）
 
 ```shell
 vim mysyscall/Makefile
@@ -87,7 +87,7 @@ obj-y := addresstransform.o
 :wq -> Write File & Quit Vim
 ```
 
-* 將 SYSCALL 調用增加至 Kernel 的 Makefile 中 (要在core-y    += ... /(後面再加上)mysyscall/ )
+* 將 SYSCALL 調用增加至 Kernel 的 Makefile 中（要在core-y    += ... /(後面再加上)mysyscall/）
 
 ```shell
 vim Makefile
@@ -97,7 +97,7 @@ core-y    += ... mysyscall/
 :wq -> Write File & Quit Vim
 ```
 
-* 將 SYSCALL 調用增加至 Kernel 的 Function Header 中 (使用外部function需要asmlinkage long宣告)
+* 將 SYSCALL 調用增加至 Kernel 的 Function Header 中（使用外部 Function 需要 asmlinkage long 宣告）
 
 ```shell
 vim include/linux/syscalls.h
@@ -106,7 +106,7 @@ asmlinkage long my_get_physical_addresses(unsigned long* initial, int virtual_ad
 :wq -> Write File & Quit Vim
 ```
 
-* 將 SYSCALL 調用增加至 Kernel 的 SYSTEM_TABLE 中(新增到最底下欄位)
+* 將 SYSCALL 調用增加至 Kernel 的 SYSTEM_TABLE 中（新增到最底下欄位）
 
 ```shell
 vim arch/x86/entry/syscalls/syscall_64.tbl
@@ -115,7 +115,7 @@ i -> Insert
 :wq -> Write File & Quit Vim
 ```
 
-* 創建 Linux Kernel .config 或直接複製舊有的 .config（此處選擇原先系統之 .config）將/boot/config copy到當前位置
+* 創建 Linux Kernel .config 或直接複製舊有的 .config（此處選擇原先系統之 .config）將 /boot/config COPY 到當前位置
 
 ```shell
 sudo cp -v /boot/config-$(uname -r) .config
@@ -130,7 +130,7 @@ sudo cp -v /boot/config-$(uname -r) .config
 sudo make menuconfig
 ```
 
-* 調整 Kernel Compile 的驗證金鑰，如果更新出錯使用:w!強制寫入 再:wq
+* 調整 Kernel Compile 的驗證金鑰，如果更新出錯使用 :w! 強制寫入再 :wq
 
 ```shell
 vim .config
