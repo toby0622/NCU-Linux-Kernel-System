@@ -93,7 +93,7 @@ obj-y := addresstransform.o
 vim Makefile
 /core-y    += -> Search "core-y    +="
 i -> Insert
-core-y    += ... mysyscall/
+core-y			+= kernel/ certs/ mm/ fs/ ipc/ security/ crypto/ mysyscall/
 :wq -> Write File & Quit Vim
 ```
 
