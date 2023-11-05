@@ -52,7 +52,7 @@ sudo apt-get install synaptics
 sudo apt clean && sudo apt autoremove -y
 ```
 
-* 利用 wget 通過 cdn 下載 Linux Kernel（不推薦 Kernel Version 6，新版本在新增 SYSCALL 上有變動，會多出很多的坑，非必要不用自找麻煩），並將 Source Code 解壓縮
+* 利用 wget 通過 CDN 下載 Linux Kernel（不推薦 Kernel Version 6，新版本在新增 SYSCALL 上有變動，會多出很多的坑，非必要不用自找麻煩），並將 Source Code 解壓縮
 
 ```shell
 wget -P ~/ https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.17.7.tar.xz
