@@ -1,0 +1,13 @@
+中央大學資訊工程學系 Linux 作業系統
+
+第三十組
+
+112522083 鄧祺文
+112522063 林瑞庭
+112522010 林適杰
+
+Linux Kernel Project 1 代碼倉庫:
+https://github.com/toby0622/NCU-Linux-Kernel-System/tree/main/Project%201
+
+Linux Kernel Project 1 專案報告:
+https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/readme.md
