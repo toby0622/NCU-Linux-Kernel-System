@@ -43,7 +43,7 @@ sudo apt install vim -y
 ```shell
 sudo apt-get install dwarves
 sudo apt-get install zstd
-sudo apt-get install synaptics
+sudo apt-get install synaptic
 ```
 
 * 清除已經安裝的 Packages（可選）
