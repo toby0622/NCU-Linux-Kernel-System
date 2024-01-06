@@ -22,7 +22,7 @@
 * Linux Kernel: Kernel Version 5.15.86 -> Kernel Version 5.17.7 After Kernel Compile
 
 > [!NOTE]
-> 環境架設如 Project 1 報告「環境架設」欄目所提，此處不再重複展示瑣碎操作
+> 環境架設如 Project 1 報告「環境架設」欄目所提，此處不再重複展示瑣碎操作  
 > https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/readme.md
 
 ---
