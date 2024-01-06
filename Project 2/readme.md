@@ -11,7 +11,7 @@
 ## Project 目標
 
 * Objective 1: 取得 Process 的 Context Switch 狀態
-* Objective 2: 基於 Context Switch 的狀態修改 Process 之 Priority
+* Objective 2: 基於 Context Switch 的狀態修改 Process 之 Priority（struct_prio）
 
 ---
 
@@ -21,7 +21,7 @@
 * Operating System: Ubuntu 20.04 LTS
 * Linux Kernel: Kernel Version 5.15.86 -> Kernel Version 5.17.7 After Kernel Compile
 
-> [!NOTE]
+> [!IMPORTANT]
 > 環境架設如 Project 1 報告「環境架設」欄目所提，此處不再重複展示瑣碎操作  
 > https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/readme.md
 
@@ -36,29 +36,30 @@
 <https://blog.csdn.net/gatieme/article/details/51569932>
 <https://blog.xuite.net/ian11832/blogg/23967641>
 
-Linux中採取了copy-on-write技術減少無用複製。
+Linux 中採取了 copy-on-write 技術減少無用複製。
 
 * `copy_on_write`
 
-言下之意就是要write時才copy，當複製出新的子process時，先讓其直接共用父process的內容，若要改子process內容時，才複製出父process的副本並修改。
+言下之意就是要 write 時才 copy，當複製出新的子 process 時，先讓其直接共用父 process 的內容，若要改子 process 內容時，才複製出父 process 的副本並修改。
 
 <https://hackmd.io/@linD026/Linux-kernel-COW-Copy-on-Write>
 
-Linux 建立新 task 的共同 function 為copy_process()
+Linux 建立新 task 的共同 function 為 copy_process()
 
 ![](https://i.imgur.com/tCrz3hT.png)
 
-* Code Trace
+* 代碼追蹤
 
-在`task_struct`新增變數，並在對的地方計數。
+在 `task_struct` 新增變數，並在對的地方計數。
 
 ![](https://i.imgur.com/4wwZqxh.png)
 
 * `task_struct`
 
-`/include/linux/sched.h`
+> [!NOTE]
+> Kernel Code 位置為 `/include/linux/sched.h`
 
-修改 task_struct的code，新增用來計數的變數，不過要在`randomized_struct_fields_start`及`randomized_struct_fields_end` 的中間新增，因為為了增加kernel的安全性，kernel使用了編譯器提供的 randomize layout，目的是在編譯期將 struct 中的欄位排序隨機化，這樣可以對 struct 中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握 struct 中的所有數據位址。
+修改 task_struct 的 code，新增用來計數的變數，不過要在 `randomized_struct_fields_start` 及 `randomized_struct_fields_end` 的中間新增，因為為了增加 kernel 的安全性，kernel 使用了編譯器提供的 randomize layout，目的是在編譯期將 struct 中的欄位排序隨機化，這樣可以對 struct 中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握 struct 中的所有數據位址。
 
 ```c
 struct task_struct {
@@ -70,17 +71,15 @@ struct task_struct {
 	struct thread_info		thread_info;
 #endif
 	/* -1 unrunnable, 0 runnable, >0 stopped: */
-        /*大於0??*/
 	volatile long			state;
         /*
 	 * This begins the randomizable portion of task_struct. Only
 	 * scheduling-critical items should be added above here.
 	 */
 	randomized_struct_fields_start /*randomize layout 開始*/
-    
 /*
  ...
- 中間程式碼太多先省略
+ multiline code skip
  ...
 */
     
@@ -91,8 +90,8 @@ struct task_struct {
 					__mce_reserved : 62;
 	struct callback_head		mce_kill_me;
 #endif
-        unsigned int cs_count; /*自己增加記錄context switch 次數的變數*/
-        unsigned int wq_count; /*自己增加記錄進入waiting queue 次數的變數*/
+	// context switch 次數記錄，只要有增加就代表有發生 context swtich
+        unsigned int cs_count;
     
 	/*
 	 * New fields for task_struct should be added above here, so that
@@ -110,7 +109,6 @@ struct task_struct {
 	 * Do not put anything below here!
 	 */
 };
-
 ```
 
 * `do_fork()` 
@@ -211,7 +209,8 @@ long _do_fork(struct kernel_clone_args *args)
 
 * `copy_process()`
 
-`/kernel/fork.c`
+> [!NOTE]
+> Kernel Code 位置為 `/kernel/fork.c`
 
 Here is a brief overview of how copy_process() works:
 1. It first allocates memory for the new struct task_struct structure and sets up the basic fields of the structure.
@@ -234,33 +233,37 @@ static __latent_entropy struct task_struct *copy_process(
 	u64 clone_flags = args->flags;
 	struct nsproxy *nsp = current->nsproxy;
     
-    
         /*
         ...
-         中間程式碼太多先省略
+	multiline code skip
         ...
         */
+
         trace_task_newtask(p, clone_flags);
         uprobe_copy_process(p, clone_flags);
-        /*將這兩個新增的變數初始化*/
-        p->cs_count = 0; 
-        p->wq_count = 0; 
+
+        // context switch 次數記錄初始化
+        p -> cs_count = 0; 
     
         return p;
-        /*下面省略*/
-}
 
+	/*
+        ...
+	multiline code skip
+        ...
+        */
+}
 ```
 
 * `schedule()`
 
 The Linux kernel's scheduling function, called schedule(), is responsible for deciding which process should be executed next by the CPU. 
 
-決定要跑哪個process，例如：wait系列的function會呼叫其把cpu的控制權交出去
+決定要跑哪個 process，例如：wait 系列的 function 會呼叫其把 cpu 的控制權交出去
 
 <https://zhuanlan.zhihu.com/p/363791563>
 
-主要重要步驟在`__schedule()`中
+主要重要步驟在 `__schedule()` 中
 
 ```c
 asmlinkage __visible void __sched schedule(void)
@@ -279,7 +282,8 @@ asmlinkage __visible void __sched schedule(void)
 
 * `__schedule(false)`
 
-`/kernel/sched/core.c`
+> [!NOTE]
+> Kernel Code 位置為 `/kernel/sched/core.c`
 
 __schedule() is responsible for selecting the next process to run and switching to that process's execution context. It does this by examining the list of runnable processes in the system and selecting the one with the highest priority. It then saves the current process's execution context and restores the execution context of the selected process.
 
@@ -415,7 +419,6 @@ static void __sched notrace __schedule(bool preempt)
 
 	balance_callback(rq);
 }
-
 ```
 
 * `context_switch()`
@@ -569,7 +572,8 @@ SYM_CODE_END(__switch_to_asm)
 
 * `__switch_to`
 
-`/arch/x86/kernel/process_64.c`
+> [!NOTE]
+> Kernel Code 位置為 `/arch/x86/kernel/process_64.c`
 
 我們在這邊增加`cs_count`
 
@@ -687,12 +691,11 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 
 	return prev_p;
 }
-
 ```
 
 * `wait_event`
 
-讓process進到wait queue休眠
+讓 process 進到 wait queue 休眠
 
 * `__wait_event`
 * `___wait_event`
@@ -749,7 +752,7 @@ static int __wake_up_common(struct wait_queue_head *wq_head, unsigned int mode,
 
 * `default_wake_function`
 
-預設用來喚醒wait queue中process的實現函式，
+預設用來喚醒 wait queue 中 process 的實現函式，
 
 ```c
 int default_wake_function(wait_queue_entry_t *curr, unsigned mode, int wake_flags,
@@ -762,13 +765,14 @@ int default_wake_function(wait_queue_entry_t *curr, unsigned mode, int wake_flag
 
 * `try_to_wake_up`
 
-呼叫`ttwu_queue()` 這個 funtion 然後 ttwu_queue() -> `ttwu_do_activate()` -> `ttwu_do_wakeup()`
+呼叫 `ttwu_queue()` 這個 funtion 然後 ttwu_queue() -> `ttwu_do_activate()` -> `ttwu_do_wakeup()`
 
 * `ttwu_do_wakeup`
 
-`/kernel/sched/core.c`
+> [!NOTE]
+> Kernel Code 位置為 `/kernel/sched/core.c`
 
-由於每個進入waiting queue的process ，在等待完I/O後會就會出來，所以我們在叫醒process的這段code進行計數。
+由於每個進入 waiting queue 的 process ，在等待完 I/O 後會就會出來，所以我們在叫醒 process 的這段 code 進行計數。
 
 ```c
 /*
