@@ -1,36 +1,66 @@
-# Linux Project 2
+# NCU Linux Kernel System Project 2
 
-## 
+## Linux 第三十組
 
-1. 取得 Process 的 Context Switch 狀態
-2. 基於 Context Switch 的狀態修改 Process 之 Priority
+* 112522083 資工系碩一 鄧祺文
+* 112522063 資工系碩一 林瑞庭
+* 112522010 資工系碩一 林適杰
 
-## 先備知識
+---
 
-### `fork()`
+## Project 目標
+
+* Objective 1: 取得 Process 的 Context Switch 狀態
+* Objective 2: 基於 Context Switch 的狀態修改 Process 之 Priority
+
+---
+
+## 開發環境
+
+* Virtual Machine: Oracle VM VirtualBox
+* Operating System: Ubuntu 20.04 LTS
+* Linux Kernel: Kernel Version 5.15.86 -> Kernel Version 5.17.7 After Kernel Compile
+
+> [!NOTE]
+> 環境架設如 Project 1 報告「環境架設」欄目所提，此處不再重複展示瑣碎操作
+> https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/readme.md
+
+---
+
+## Context Switch 相關概念
+
+* `fork()`
+
 完全複製父行程的資源，子行程獨立於父行程。
->https://blog.csdn.net/gatieme/article/details/51569932
->https://blog.xuite.net/ian11832/blogg/23967641
+
+<https://blog.csdn.net/gatieme/article/details/51569932>
+<https://blog.xuite.net/ian11832/blogg/23967641>
 
 Linux中採取了copy-on-write技術減少無用複製。
-### copy_on_write
+
+* `copy_on_write`
+
 言下之意就是要write時才copy，當複製出新的子process時，先讓其直接共用父process的內容，若要改子process內容時，才複製出父process的副本並修改。
->https://hackmd.io/@linD026/Linux-kernel-COW-Copy-on-Write
+
+<https://hackmd.io/@linD026/Linux-kernel-COW-Copy-on-Write>
 
 Linux 建立新 task 的共同 function 為copy_process()
+
 ![](https://i.imgur.com/tCrz3hT.png)
 
-## Code Trace
+* Code Trace
+
 在`task_struct`新增變數，並在對的地方計數。
 
 ![](https://i.imgur.com/4wwZqxh.png)
 
-### `task_struct`
+* `task_struct`
+
 `/include/linux/sched.h`
 
 修改 task_struct的code，新增用來計數的變數，不過要在`randomized_struct_fields_start`及`randomized_struct_fields_end` 的中間新增，因為為了增加kernel的安全性，kernel使用了編譯器提供的 randomize layout，目的是在編譯期將 struct 中的欄位排序隨機化，這樣可以對 struct 中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握 struct 中的所有數據位址。
 
-```clike=
+```c
 struct task_struct {
 #ifdef CONFIG_THREAD_INFO_IN_TASK
 	/*
@@ -83,10 +113,9 @@ struct task_struct {
 
 ```
 
+* `do_fork()` 
 
-### `do_fork()` 
-
-```clike=
+```c
 long do_fork(unsigned long clone_flags,
 	      unsigned long stack_start,
 	      unsigned long stack_size,
@@ -110,9 +139,9 @@ long do_fork(unsigned long clone_flags,
 }
 ```
 
-### `_do_fork()`
+* `_do_fork()`
 
-```clike=
+```c
 long _do_fork(struct kernel_clone_args *args)
 {
 	u64 clone_flags = args->flags;
@@ -180,8 +209,8 @@ long _do_fork(struct kernel_clone_args *args)
 }
 ```
 
+* `copy_process()`
 
-### `copy_process()`
 `/kernel/fork.c`
 
 Here is a brief overview of how copy_process() works:
@@ -191,9 +220,7 @@ Here is a brief overview of how copy_process() works:
 1. It adds the new process to the system's list of processes and assigns it a unique process ID. 
 1. It ==returns a pointer to the new struct task_struct structure, which can be used== to control and manipulate the new process.
 
-
-
-```clike=
+```c
 static __latent_entropy struct task_struct *copy_process(
 					struct pid *pid,
 					int trace,
@@ -225,15 +252,17 @@ static __latent_entropy struct task_struct *copy_process(
 
 ```
 
-### `schedule()`
+* `schedule()`
+
 The Linux kernel's scheduling function, called schedule(), is responsible for deciding which process should be executed next by the CPU. 
 
 決定要跑哪個process，例如：wait系列的function會呼叫其把cpu的控制權交出去
 
->https://zhuanlan.zhihu.com/p/363791563
+<https://zhuanlan.zhihu.com/p/363791563>
 
 主要重要步驟在`__schedule()`中
-```clike=
+
+```c
 asmlinkage __visible void __sched schedule(void)
 {
 	struct task_struct *tsk = current;
@@ -248,14 +277,15 @@ asmlinkage __visible void __sched schedule(void)
 }
 ```
 
-### `__schedule(false)`
+* `__schedule(false)`
+
 `/kernel/sched/core.c`
 
 __schedule() is responsible for selecting the next process to run and switching to that process's execution context. It does this by examining the list of runnable processes in the system and selecting the one with the highest priority. It then saves the current process's execution context and restores the execution context of the selected process.
 
 裡面又再呼叫到`context_switch()`
 
-```clike=
+```c
 static void __sched notrace __schedule(bool preempt)
 {
 	struct task_struct *prev, *next;
@@ -388,7 +418,7 @@ static void __sched notrace __schedule(bool preempt)
 
 ```
 
-### `context_switch()`
+* `context_switch()`
 
 A context switch is the process by which the kernel switches the execution of a process from one CPU to another. There are two types of context switches: voluntary and involuntary.
 
@@ -409,7 +439,7 @@ kernel process don't have own `mm_struct` because they do not use virtual memory
 >     *   user ->   user   switch
 >     */
 
-```clike=
+```c
 /*
  * context_switch - switch to the new MM and the new thread's register state.
  */
@@ -472,19 +502,18 @@ context_switch(struct rq *rq, struct task_struct *prev,
 }
 ```
 
+* `switch_to`
 
-### `switch_to`
-
-```clike=
+```c
 #define switch_to(prev, next, last)					\
 do {									\
 	((last) = __switch_to_asm((prev), (next)));			\
 } while (0)
 ```
 
-### `__switch_to_asm`
+* `__switch_to_asm`
 
-```x86=
+```c
 /*
  * %eax: prev task
  * %edx: next task
@@ -538,10 +567,13 @@ SYM_CODE_START(__switch_to_asm)
 SYM_CODE_END(__switch_to_asm)
 ```
 
-### `__switch_to`
+* `__switch_to`
+
 `/arch/x86/kernel/process_64.c`
+
 我們在這邊增加`cs_count`
-```clike=
+
+```c
 __visible __notrace_funcgraph struct task_struct *
 __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 {
@@ -658,20 +690,18 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 
 ```
 
-
-### `wait_event`
+* `wait_event`
 
 讓process進到wait queue休眠
 
-### `__wait_event`
-### `___wait_event`
+* `__wait_event`
+* `___wait_event`
 
+* `__wait_up_common`
 
-### `__wait_up_common`
-
->https://blog.51cto.com/weiguozhihui/1566980
+<https://blog.51cto.com/weiguozhihui/1566980>
  
-```clike=
+```c
 static int __wake_up_common(struct wait_queue_head *wq_head, unsigned int mode,
 			int nr_exclusive, int wake_flags, void *key,
 			wait_queue_entry_t *bookmark)
@@ -717,10 +747,11 @@ static int __wake_up_common(struct wait_queue_head *wq_head, unsigned int mode,
 }
 ```
 
+* `default_wake_function`
 
-### `default_wake_function`
 預設用來喚醒wait queue中process的實現函式，
-```clike=
+
+```c
 int default_wake_function(wait_queue_entry_t *curr, unsigned mode, int wake_flags,
 			  void *key)
 {
@@ -728,16 +759,18 @@ int default_wake_function(wait_queue_entry_t *curr, unsigned mode, int wake_flag
 	return try_to_wake_up(curr->private, mode, wake_flags);
 }
 ```
-### `try_to_wake_up`
+
+* `try_to_wake_up`
 
 呼叫`ttwu_queue()` 這個 funtion 然後 ttwu_queue() -> `ttwu_do_activate()` -> `ttwu_do_wakeup()`
 
-### `ttwu_do_wakeup`
+* `ttwu_do_wakeup`
+
 `/kernel/sched/core.c`
 
 由於每個進入waiting queue的process ，在等待完I/O後會就會出來，所以我們在叫醒process的這段code進行計數。
 
-```clike=
+```c
 /*
  * Mark the task runnable and perform wakeup-preemption.
  */
