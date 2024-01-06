@@ -811,12 +811,67 @@ static void ttwu_do_wakeup(struct rq * rq, struct task_struct * p, int wake_flag
 }
 ```
 
-##
+## Context Switch SYSCALL 設計
+
+* `CS/cs.c`
+
+```c
+#include <linux/kernel.h>
+#include <linux/syscalls.h>
+#include <linux/string.h>
+#include <linux/uaccess.h>
+#include <linux/init_task.h>
+
+SYSCALL_DEFINE1(get_number_of_context_switches, unsigned int*, count) {
+	unsigned int answer = current -> cs_count;
+	
+	printk("pid = %d; cs_count = %u; nvcsw = %lu; nivcsw = %lu\n", current -> pid, answer, current -> nvcsw, current -> nivcsw);
+	
+	return copy_to_user(count, &(answer), sizeof(unsigned int));
+}
+```
+
+## Context Switch SYSCALL 測試
+
+* `Tester/cs_test.c`
+
+```c
+#include<stdio.h>
+#include<syscall.h>
+#include<unistd.h>
+
+#define NUMBER_OF_ITERATIONS 99999999
+#define __NR_get_number_of_context_switches 548
+
+int main(){
+
+    int i, t=2, u=3, v;
+    unsigned int w;
+    unsigned int w_old = 0;
+    long syscallResult = syscall(__NR_get_number_of_context_switches, &w);
+    
+    for(i=0; i<NUMBER_OF_ITERATIONS; i++) {
+                v = (++t)*(u++);
+  
+                //if (w != w_old) {
+                //	printf("Current Counter: %u\n", w);
+                //	w_old = w;
+                //}
+    }
+    
+    if(syscallResult)
+        printf("Error!\n");
+    else
+        printf("This process encounters %u times context switches.\n",w);
 
 
+    printf("w = %u\tsystem call result = %ld\n", w, syscallResult);
+    printf("pid=%d\n", getpid());
 
-##
+    return 0;
+}
+```
 
-
+* 執行結果
 
 
