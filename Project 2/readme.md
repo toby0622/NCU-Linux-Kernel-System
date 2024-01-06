@@ -22,7 +22,7 @@
 * Linux Kernel: Kernel Version 5.15.86 -> Kernel Version 5.17.7 After Kernel Compile
 
 > [!IMPORTANT]
-> 環境架設如 Project 1 報告「環境架設」欄目所提，此處不再重複展示瑣碎操作  
+> 「環境架設」和「SYSCALL 新增」等操作皆如 Project 1 報告之相關欄目所提，此處不再重複展示細部操作  
 > https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/readme.md
 
 ---
@@ -810,3 +810,13 @@ static void ttwu_do_wakeup(struct rq * rq, struct task_struct * p, int wake_flag
     #endif
 }
 ```
+
+##
+
+
+
+##
+
+
+
+
