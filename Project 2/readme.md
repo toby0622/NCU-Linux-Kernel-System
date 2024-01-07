@@ -239,7 +239,9 @@ CFS（Completely Fair Scheduler）是 Linux 核心中用於進程調度的主要
 
 為了解釋 CFS 為何並不公平，我們需要討論在新版本 Linux Kernel 中所引進的 `task_group`。何謂 `task_group`？`task_group` 是一種系統機制，允許系統將相關的進程組織成群組，並作為「一個單位」進行調度，使得群組內的 Process 在 CPU 時間分配上共享「相同」的調度特性和資源限制。`task_group` 同樣具有權重機制，可以對進程的 `vruntime` 增長速度產生影響，每個 `task_group` 都有一個權重，該權重決定了該群組內進程的 `vruntime` 增長速度。如果一個 `task_group` 的權重較高，其內部進程的 `vruntime` 增長較慢，這意味著這些 Process 可以獲得更多的 CPU 時間；反之，如果一個 `task_group` 的權重較低，其內部進程的 `vruntime` 增長較快，這意味著這些 Process 只能獲得較少 CPU 時間。
 
-不過這就是我們認為的問題所在，由於 `task_group` 是採用 Group 的方式來對內部擁有的所有 Process 權重來進行調整，這種權重機制有可能導致特定群組相對於其他群組或是個別進程獲得更多的 CPU 資源，從而影響到系統中其他進程的公平性。換句話說，擁有高權重的 Group 在進行排程時可能會被 CFS 優先排入隊列，進而占用大量的 CPU 時間。在這樣的前提下，我們猜測調整 `static_prio` 卻無法獲得差異的原因可能有下列兩種：其一，假設有一個高權重的 Group，而我們的 Process 是該 Group 的其中一員，即便我們對該特定 Process 調整其 `static_prio` 的值，由於 CFS 還是先以 `task_group` 所持有的權重來進行排程，整個 Group 在系統中依然擁有優先地位，該特定 Process 的權重差異變成僅能體現在 Group 內部的排程先後，就系統宏觀來看執行的差異非常小；其二則是，如果該 Process 並不再擁有高權重的 Group 內，不論是被分配到其他 Group 還是沒有被分配，不管該特定 Process 調整成甚麼優先級，該 Process 終歸要在高權重的 Group Process 被 CFS 排程完後才能獲取所需 CPU 時間，也就很難看出調整後的差異了。
+不過這就是我們認為的問題所在，由於 `task_group` 是採用 Group 的方式來對內部擁有的所有 Process 權重來進行調整，這種權重機制有可能導致特定群組相對於其他群組或是個別進程獲得更多的 CPU 資源，從而影響到系統中其他進程的公平性。換句話說，擁有高權重的 Group 在進行排程時可能會被 CFS 優先排入隊列，進而占用大量的 CPU 時間，而不是單純只考量各 Process 之間的權重和優先級。
+
+在這樣的前提下，我們猜測調整 `static_prio` 卻無法獲得差異的原因可能有下列兩種：其一，假設有一個高權重的 Group，而我們的 Process 是該 Group 的其中一員，即便我們對該特定 Process 調整其 `static_prio` 的值，由於 CFS 還是先以 `task_group` 所持有的權重來進行排程，整個 Group 在系統中依然擁有優先地位，該特定 Process 的權重差異變成僅能體現在 Group 內部的排程先後，就系統宏觀來看執行的差異非常小；其二則是，如果該 Process 並不再擁有高權重的 Group 內，不論是被分配到其他 Group 還是沒有被分配，不管該特定 Process 調整成甚麼優先級，該 Process 終歸要在高權重的 Group Process 被 CFS 排程完後才能獲取所需 CPU 時間，也就很難看出調整後的差異了。
 
 ---
 
