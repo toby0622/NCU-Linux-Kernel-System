@@ -93,12 +93,16 @@ if (next -> static_prio != 0 && next -> my_fixed_priority >= 101 && next -> my_f
 
 ## Linux SYSCALL 建立
 
-1. System Call 建立在資料夾 mysyscall 內
+1. System Call 建立在資料夾 `mysyscall` 內
 2. 建立 `my_set_process_priority.c`
-3. Syscall Folder 內自行新增的 Makefile 加入 `my_set_process_priority.o`
-4. Linux Source Code 內 Kernel Makefile 路徑加上 System Call
+3. Folder `mysyscall` 內自行新增的 `Makefile` 加入 `my_set_process_priority.o`
+4. Linux Source Code 內 Kernel `Makefile` 路徑加上 `mysyscall`
 5. System Call Table 新增 System Call Number
-6. System Call Header File 新增 Syscall Prototype
+6. System Call Header File 新增 System Call Prototype
+
+> [!TIP]
+> 詳細步驟參照於 Linux Project 1 「環境架設」欄目，此處不再贅述  
+> https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%201/readme.md
 
 * `my_set_process_priority.c`
 
