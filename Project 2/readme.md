@@ -58,7 +58,7 @@ int my_set_process_priority(int x)
 因為 `test.c` 執行結果在各 `static_prio` 下，執行時間並無顯著差異，所以我們在 `__schedule` 中多加嘗試，在 Context Switch 前的各時間點判斷 Task 是否需要調整 `static_prio`。
 
 > [!NOTE]
-> 想法一（對照 Test Result 1）
+> 想法一（對照 Test Result 1）  
 > 在 `__schedule` 內，直接先判斷 current task(prev) 是否需調整 `static_prio`。
 
 1. `vim kernel/sched/core.c` 進入 `core.c`
@@ -74,10 +74,10 @@ if (prev -> static_prio != 0 && prev -> my_fixed_priority >= 101 && prev -> my_f
 </p>
 
 > [!NOTE]
-> 想法二（對照 Test Result 2）
+> 想法二（對照 Test Result 2）  
 > 在 `__schedule` 內，得到 next task 後判斷 next task(next) 是否需調整 `static_prio`。
 
-1. `vim kernel/sched/core.c` 進入 `core.c 
+1. `vim kernel/sched/core.c` 進入 `core.c`
 2. 在已取得 next task 後，執行 Context Switch 前，插入以下程式碼判斷 next 是否需調整 `static_prio` 欄位
 
 ```c
@@ -93,15 +93,16 @@ if (next -> static_prio != 0 && next -> my_fixed_priority >= 101 && next -> my_f
 
 ## Linux SYSCALL 建立
 
-1. system call建立在資料夾mysyscall內
-2. 建立`my_set_process_priority.c`
-3. syscall內自行新增的Makefile加入`my_set_process_priority.o`
-4. linux source code內的Makefile路徑加上syscall
-5. 新增system call 代碼
-6. system call宣告
+1. System Call 建立在資料夾 mysyscall 內
+2. 建立 `my_set_process_priority.c`
+3. Syscall Folder 內自行新增的 Makefile 加入 `my_set_process_priority.o`
+4. Linux Source Code 內的 Makefile 路徑加上 Syscall
+5. 新增 System Call 代碼
+6. System Call 宣告
 
-my_set_process_priority.c
-```
+* `my_set_process_priority.c`
+
+```c
 #include <linux/kernel.h>
 #include <linux/syscalls.h>
 #include <linux/sched.h>
@@ -131,9 +132,13 @@ SYSCALL_DEFINE1(my_set_process_priority, int, priority){
 }
 ```
 
-### Test code
-testProject2.c
-```
+---
+
+## 功能測試
+
+* `testProject2.c`
+
+```c
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -183,55 +188,69 @@ int main() {
 }
 ```
 
-### Test rusult
+---
 
-#### result 1
+## 執行結果
 
-testProject2.c執行結果：
+* Test Result 1（對應想法一）
+
+`testProject2.c` 執行結果：
 
 <p align="center">
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/5.png?raw=true" alt="P5"/>
 </p>
 
-system call內對重要參數print資訊：
+System Call 內對重要參數 Print 資訊：
 
 <p align="center">
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/6.png?raw=true" alt="P6"/>
 </p>
 
-#### result 2
+* Test Result 2（對應想法二）
 
-testProject2.c執行結果：
+`testProject2.c` 執行結果：
 
 <p align="center">
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/7.png?raw=true" alt="P7"/>
 </p>
 
-system call內對重要參數print資訊：
+System Call 內對重要參數 Print 資訊：
 
 <p align="center">
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/8.png?raw=true" alt="P8"/>
 </p>
 
-### 原因探討
-在static_prio被調整前後，進程執行時間皆未發生顯著變化。
+---
 
-做法1為在system call將current task的my_fixed_priority欄位設為priority的值(101~139)後，手動呼叫scheduld()，而在schedule()內，加入判斷條件，當current task的priority為101~139且current task非process 0時，將其static_prio欄位調整為my_fixed_priority欄位的值，在第一次做system call時，就將其static_prio設定好。
+## 結果分析
 
-做法2為在system call將current task的my_fixed_priority欄位設為priority的值(101~139)後，手動呼叫scheduld()，而在schedule()內，加入判斷條件，在O.S.找到next task後且尚未進行context switch前，判斷當next task的priority為101~139且next task非process 0時，將其static_prio欄位調整為my_fixed_priority欄位的值，
+> [!NOTE]
+> 在 `static_prio` 被調整前後，進程執行時間皆未發生顯著變化。
 
-另在測試時經由prink印出參數，發現調整static_prio後，nice與vruntime值也會一併被調整。
+想法一為在 System Call 將 current task 的 `my_fixed_priority` 欄位設為 priority 的值（101-139）後，手動呼叫 `scheduld()`，而在 `schedule()` 內，加入判斷條件，當 current task 的 priority 為 101-139 且 current task 非 Process 0 時，將其 `static_prio` 欄位調整為 `my_fixed_priority` 欄位的值，在第一次做 System Call時，就將其 `static_prio` 設定好。
 
-需要關注的點有static_prio, nice, vruntime，task_struct資料結構中static_prio是靜態優先順序，不會隨著時間改變，nice值為static_prio - 120 (-19~20)，控制進程的優先等級，nice值越低，則進程可以獲得的cpu時間越長，vruntime是進程虛擬的執行時間，nice值越小，vruntime速率越慢，可以想像成在假設每個進程可以執行的時間都是10秒，走得比較慢的時鐘就可以走更久，走得快的時鐘則走得比較快。
+想法二為在 System Call 將 current task 的 `my_fixed_priority` 欄位設為 priority 的值（101-139）後，手動呼叫 `scheduld()`，而在 `schedule()` 內，加入判斷條件，在 Operating System 找到 next task 後且尚未進行 Context Switch 前，判斷當 next task 的 priority 為 101-139 且 next task 非 Process 0 時，將其 `static_prio` 欄位調整為 `my_fixed_priority` 欄位的值。
 
-CFS排程器在排程時主要是看vruntime值，將vruntime值最小的task執行後，再考慮其使用cpu的時間重新插入紅黑數中，另外還有task_group的概念，推測~~可能是CFS排程器做到的fair與執行時間並未有直接相關~~?(這段還沒研究，感覺可以做個結尾)
+另在測試時經由 `printk` 印出參數，發現調整 `static_prio` 後，`nice` 與 `vruntime` 值也會一併被調整。
 
-參考資料：https://hackmd.io/@RinHizakura/B18MhT00t
+需要關注的點有 `static_prio`、`nice`、`vruntime`，`task_struct` 資料結構中 `static_prio` 是靜態優先順序，不會隨著時間改變，`nice` 值為 `static_prio` - 120，也就是實際值會落在 -19-20 這個區間，控制進程的優先等級，`nice` 值越低，則進程可以獲得的 CPU 時間越長，`vruntime` 是進程虛擬的執行時間，`nice` 值越小，`vruntime` 速率越慢，可以想像成在假設每個進程可以執行的時間都是 10 秒，走得比較慢的時鐘就可以走更久，走得快的時鐘則走得比較快。
 
-### 筆記
+CFS 排程器在排程時主要是看 `vruntime` 值，將 `vruntime` 值最小的 task 執行後，再考慮其使用 CPU 的時間重新插入紅黑樹中，另外還有 `task_group` 的概念，推測~~可能是CFS排程器做到的fair與執行時間並未有直接相關~~?(這段還沒研究，感覺可以做個結尾)
 
-建立多個system call時，自行建立的Makefile內寫法如下，否則在make時會報錯。
+---
+
+## 錯誤筆記及參考資料
+
+* 錯誤筆記
+
+> [!CAUTION]
+> 建立多個 System Call 時，自行建立的 Makefile 內寫法如下，否則在 make 時會報錯。
 
 <p align="center">
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/9.png?raw=true" alt="P9"/>
 </p>
+
+* 參考資料
+
+1. 概述 CFS Scheduler：<https://hackmd.io/@RinHizakura/B18MhT00t>
+2. 深入剖析 CFS Scheduler：<https://hackmd.io/@RinHizakura/BJ9m_qs-5>
