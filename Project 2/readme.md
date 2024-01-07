@@ -39,13 +39,27 @@ int my_set_process_priority(int x)
 ![image](https://hackmd.io/_uploads/HJ1Sjgv_T.png)
 
 ### __schedule
+因為test.c執行結果在各static_prio下，執行時間並無顯著差異，所以我們在__schedule中多加嘗試在context switch前，判斷task是否需要調整static_prio
 
+#### 1 (對照 test result 1)
+在__schedule內，直接先判斷current task(prev)是否需調整static_prio。
 1. `vim kernel/sched/core.c`進入core.c
-2. 插入
+2. 在尚未取得next task前插入以下程式碼判斷prev是否需調整static_prio欄位
     ```
     if(prev->static_prio != 0 && prev->my_fixed_priority >= 101 && prev->my_fixed_priority <= 139)
         prev->static_prio = prev->my_fixed_priority;
     ```
+    ![image](https://hackmd.io/_uploads/HkCNGtwua.png)
+
+#### 2 (對照 test result 2)
+在__schedule內，得到next task後判斷next task(next)是否需調整static_prio。
+1. `vim kernel/sched/core.c`進入core.c
+2. 在已取得next task後，執行context switch前，插入以下程式碼判斷next是否需調整static_prio欄位
+    ```
+    if(next->static_prio != 0 && next->my_fixed_priority >= 101 && next->my_fixed_priority <= 139)
+                next->static_prio = next->my_fixed_priority;
+    ```
+    ![image](https://hackmd.io/_uploads/Sk4ZMtvO6.png)
 
 ### New system call
 1. system call建立在資料夾mysyscall內
@@ -139,11 +153,19 @@ int main() {
 ```
 
 ### Test rusult
+#### result 1
 testProject2.c執行結果：
 ![image](https://hackmd.io/_uploads/BykD0NwOT.png)
 
-syscall內對重要參數print結果：
+syscall內對重要參數print資訊：
 ![image](https://hackmd.io/_uploads/H1h_AEP_a.png)
+
+#### result 2
+testProject2.c執行結果：
+![image](https://hackmd.io/_uploads/ryunkYwua.png)
+
+system call內對重要參數print資訊：
+![image](https://hackmd.io/_uploads/r1ks1tPua.png)
 
 ### 原因探討
 在static_prio被調整前後，進程執行時間皆未發生顯著變化。
