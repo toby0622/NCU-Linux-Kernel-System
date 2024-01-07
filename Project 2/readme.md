@@ -238,10 +238,10 @@ System Call 內對重要參數 Print 資訊：
 CFS 排程器在排程時主要是看 `vruntime` 值，將 `vruntime` 值最小的 task 執行後，再考慮其使用 CPU 的時間重新插入紅黑樹中，另外還有 `task_group` 的概念，推測~~可能是CFS排程器做到的fair與執行時間並未有直接相關~~?(這段還沒研究，感覺可以做個結尾)
 
 > [!TIP]
-> * nice 值：nice 是一個範圍在 -20 到 +19 的整數，用於表示進程的優先級，數值越低則優先級越高。nice 值影響進程的權重（weight），這是 CFS 用來決定進程應獲得多少 CPU 時間的關鍵因素。  
-> * weight 和 nice 值：CFS 根據 nice 計算進程的 weight。nice 值越低則 weight 越高，進程獲得的 CPU 時間越多。weight 的計算公式是基於 nice 值的，並且是非線性的。這意味著 nice 值的微小變化可以導致權重的顯著變化。  
-> * vruntime 值：vruntime 是進程的虛擬運行時間，它是 CFS 用來追蹤進程已獲得的 CPU 時間的。每當進程在 CPU 上運行時，其 vruntime 會增加。
-> * nice 與 vruntime 之間的關係：進程的 nice 值間接通過影響權重來影響其 vruntime 的增長速度。一個 nice 值較高（優先級較低）的進程會有較低的權重，導致其 vruntime 增長較快，從而減少其獲得 CPU 時間的機會。相反，nice 值較低（優先級較高）的進程會有較高的權重，其 vruntime 增長較慢，從而增加其獲得 CPU 時間的機會。
+> 1. `nice` 值：nice 是一個範圍在 -20 到 +19 的整數，用於表示進程的優先級，數值越低則優先級越高。nice 值影響進程的權重（weight），這是 CFS 用來決定進程應獲得多少 CPU 時間的關鍵因素。  
+> 2. weight 和 `nice` 值：CFS 根據 nice 計算進程的 weight。nice 值越低則 weight 越高，進程獲得的 CPU 時間越多。weight 的計算公式是基於 nice 值的，並且是非線性的。這意味著 nice 值的微小變化可以導致權重的顯著變化。  
+> 3. `vruntime` 值：vruntime 是進程的虛擬運行時間，它是 CFS 用來追蹤進程已獲得的 CPU 時間的。每當進程在 CPU 上運行時，其 vruntime 會增加。
+> 4. `nice` 與 `vruntime` 之間的關係：進程的 nice 值間接通過影響權重來影響其 vruntime 的增長速度。一個 nice 值較高（優先級較低）的進程會有較低的權重，導致其 vruntime 增長較快，從而減少其獲得 CPU 時間的機會。相反，nice 值較低（優先級較高）的進程會有較高的權重，其 vruntime 增長較慢，從而增加其獲得 CPU 時間的機會。
 
 ---
 
