@@ -8,38 +8,46 @@
 
 ---
 
-## Kernel and O.S. version
-Virtual machine: VMware workstation 17 player
-Linux kernel: 5.17.7
-Operation system: Ubuntu 20.04.6 LTS
+## 開發環境
+
+* Virtual machine: VMWare Workstation 17 Player
+* Linux kernel: 5.17.7
+* Operation system: Ubuntu 20.04.6 LTS
 
 ---
 
-## Goal
-Write a new system call int my_set_process_priority(int x) so that a process P can use this new system call my_set_process_priority(int x) to set the priority of the process as x every time when a context switch (i.e. process switch) transfers CPU to process P.
-```
-//prototype of the new system call is as follows:     
+## Project 目標
+
+* Objective: Write a new system call int my_set_process_priority(int x) so that a process P can use this new system call my_set_process_priority(int x) to set the priority of the process as x every time when a context switch (i.e. process switch) transfers CPU to process P.
+
+```c
+// prototype of the new system call is as follows:     
 int my_set_process_priority(int x)
 ```
 
 ---
 
-## Method
+## 設計方法
 
-### Add a new field in task_struct
+* Add a new field in task_struct
 修改task_struct的程式碼，新增`my_fixed_priority`欄位用來存取自行設定的priority的數值，不過要在`randomized_struct_fields_start`及`randomized_struct_fields_end`的中間新增，因為為了增加kernel的安全性，kernel使用了編譯器提供的randomize layout，目的是在編譯期將struct中的欄位排序隨機化，這樣可以對struct中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握struct中的所有數據位址。
+
 1. `vim include/linux/sched.h`進入sched.h
 2. 插入`int				my_fixed_priority;`
+
 ![image](https://hackmd.io/_uploads/ByaOBDEOp.png)
 
-### Initialize the new field
+* Initialize the new field
+
 因為linux在建立新task時的共同function為copy_process()，故我們在copy_process這個函數內對在task_struct內新增的my_fixed_priority欄位做初始化為0。
+
 1. `vim kernel/fork.c`進入fork.c
 2. 插入`p->my_fixed_priority = 0;`
+
 ![image](https://hackmd.io/_uploads/HJ1Sjgv_T.png)
 
-### __schedule
-因為test.c執行結果在各static_prio下，執行時間並無顯著差異，所以我們在__schedule中多加嘗試在context switch前，判斷task是否需要調整static_prio
+* __schedule
+因為test.c執行結果在各static_prio下，執行時間並無顯著差異，所以我們在__schedule中多加嘗試，在context switch前的各時間點判斷task是否需要調整static_prio。
 
 #### 1 (對照 test result 1)
 在__schedule內，直接先判斷current task(prev)是否需調整static_prio。
@@ -153,11 +161,12 @@ int main() {
 ```
 
 ### Test rusult
+
 #### result 1
 testProject2.c執行結果：
 ![image](https://hackmd.io/_uploads/BykD0NwOT.png)
 
-syscall內對重要參數print資訊：
+system call內對重要參數print資訊：
 ![image](https://hackmd.io/_uploads/H1h_AEP_a.png)
 
 #### result 2
@@ -170,11 +179,15 @@ system call內對重要參數print資訊：
 ### 原因探討
 在static_prio被調整前後，進程執行時間皆未發生顯著變化。
 
-本做法為在system call將current task的my_fixed_priority欄位設為priority的值(101~139)後，手動呼叫scheduld()，而在schedule()內，加入判斷條件，當current task的priority為101~139且current task非process 0時，將其static_prio欄位調整為my_fixed_priority欄位的值，在第一次做system call時，就將其static_prio設定好，經由prink印出參數，得知調整static_prio即會將nice與vruntime一併調整。。
+做法1為在system call將current task的my_fixed_priority欄位設為priority的值(101~139)後，手動呼叫scheduld()，而在schedule()內，加入判斷條件，當current task的priority為101~139且current task非process 0時，將其static_prio欄位調整為my_fixed_priority欄位的值，在第一次做system call時，就將其static_prio設定好。
+
+做法2為在system call將current task的my_fixed_priority欄位設為priority的值(101~139)後，手動呼叫scheduld()，而在schedule()內，加入判斷條件，在O.S.找到next task後且尚未進行context switch前，判斷當next task的priority為101~139且next task非process 0時，將其static_prio欄位調整為my_fixed_priority欄位的值，
+
+另在測試時經由prink印出參數，發現調整static_prio後，nice與vruntime值也會一併被調整。
 
 需要關注的點有static_prio, nice, vruntime，task_struct資料結構中static_prio是靜態優先順序，不會隨著時間改變，nice值為static_prio - 120 (-19~20)，控制進程的優先等級，nice值越低，則進程可以獲得的cpu時間越長，vruntime是進程虛擬的執行時間，nice值越小，vruntime速率越慢，可以想像成在假設每個進程可以執行的時間都是10秒，走得比較慢的時鐘就可以走更久，走得快的時鐘則走得比較快。
 
-CFS排程器在排程時主要是看vruntime值，將vruntime值最小的task執行後，再考慮其使用cpu的時間重新插入紅黑數中，另外還有task_group的概念，推測可能是CFS排程器做到的fair與執行時間並未有直接相關?
+CFS排程器在排程時主要是看vruntime值，將vruntime值最小的task執行後，再考慮其使用cpu的時間重新插入紅黑數中，另外還有task_group的概念，推測~~可能是CFS排程器做到的fair與執行時間並未有直接相關~~?(這段還沒研究，感覺可以做個結尾)
 
 參考資料：https://hackmd.io/@RinHizakura/B18MhT00t
 
