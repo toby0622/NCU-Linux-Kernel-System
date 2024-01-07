@@ -96,9 +96,9 @@ if (next -> static_prio != 0 && next -> my_fixed_priority >= 101 && next -> my_f
 1. System Call 建立在資料夾 mysyscall 內
 2. 建立 `my_set_process_priority.c`
 3. Syscall Folder 內自行新增的 Makefile 加入 `my_set_process_priority.o`
-4. Linux Source Code 內的 Makefile 路徑加上 Syscall
-5. 新增 System Call 代碼
-6. System Call 宣告
+4. Linux Source Code 內 Kernel Makefile 路徑加上 System Call
+5. System Call Table 新增 System Call Number
+6. System Call Header File 新增 Syscall Prototype
 
 * `my_set_process_priority.c`
 
@@ -263,3 +263,4 @@ CFS（Completely Fair Scheduler）是 Linux 核心中用於進程調度的主要
 3. 四種任務優先度之間的差異：<https://hackmd.io/@kurokuo/r1naFPjRV>
 4. Linux 的进程优先级 NI 和 PR：<https://zhuanlan.zhihu.com/p/196809034>
 5. Linux 核心設計不只挑選任務的排程器：<https://hackmd.io/@sysprog/linux-scheduler>
+6. Linux 讀書會：<https://hackmd.io/@combo-tw/Linux-%E8%AE%80%E6%9B%B8%E6%9C%83/%2F%40combo-tw%2FHyJXuuy8H>
