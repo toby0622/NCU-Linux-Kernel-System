@@ -227,21 +227,19 @@ System Call 內對重要參數 Print 資訊：
 > [!NOTE]
 > 在 `static_prio` 被調整前後，進程執行時間皆未發生顯著變化。
 
-想法一為在 System Call 將 current task 的 `my_fixed_priority` 欄位設為 priority 的值（101-139）後，手動呼叫 `scheduld()`，而在 `schedule()` 內，加入判斷條件，當 current task 的 priority 為 101-139 且 current task 非 Process 0 時，將其 `static_prio` 欄位調整為 `my_fixed_priority` 欄位的值，在第一次做 System Call時，就將其 `static_prio` 設定好。
+想法一為在 System Call 將 current task 的 `my_fixed_priority` 欄位設為 priority 的值（101-139）後，手動呼叫 `scheduld()`，而在 `schedule()` 內，加入判斷條件，當 current task 的 priority 為 101-139 且 current task 非 Process 0 時，將其 `static_prio` 欄位調整為 `my_fixed_priority` 欄位的值，在第一次做 System Call 時，就將其 `static_prio` 設定好。
 
 想法二為在 System Call 將 current task 的 `my_fixed_priority` 欄位設為 priority 的值（101-139）後，手動呼叫 `scheduld()`，而在 `schedule()` 內，加入判斷條件，在 Operating System 找到 next task 後且尚未進行 Context Switch 前，判斷當 next task 的 priority 為 101-139 且 next task 非 Process 0 時，將其 `static_prio` 欄位調整為 `my_fixed_priority` 欄位的值。
 
-另在測試時經由 `printk` 印出參數，發現調整 `static_prio` 後，`nice` 與 `vruntime` 值也會一併被調整。
+透過想法一和想法二的測試，經過使用 `printk` 印出參數，可以發現到調整 `static_prio` 後，`nice` 與 `vruntime` 值也會一併被調整。深入分析幾個關鍵參數 `static_prio`、`nice`、`vruntime`，`task_struct` 資料結構中 `static_prio` 是靜態優先順序，不會隨著時間改變，`nice` 值為 `static_prio` - 120，也就是實際值會落在 (-19) 到 20 這個區間，控制進程的優先等級，`nice` 值越低，則進程可以獲得的 CPU 時間越長，`vruntime` 是進程虛擬的執行時間，`nice` 值越小，`vruntime` 速率越慢，如果用一個例子來描述的話就像是一個走得較慢的時鐘，使得進程能夠在固定時間內執行更長時間，而 nice 值較高的進程則像是一個走得較快的時鐘，使得它們的 `vruntime` 增加得更快，從而減少了在 CPU 上的運行時間。
 
-需要關注的點有 `static_prio`、`nice`、`vruntime`，`task_struct` 資料結構中 `static_prio` 是靜態優先順序，不會隨著時間改變，`nice` 值為 `static_prio` - 120，也就是實際值會落在 -19-20 這個區間，控制進程的優先等級，`nice` 值越低，則進程可以獲得的 CPU 時間越長，`vruntime` 是進程虛擬的執行時間，`nice` 值越小，`vruntime` 速率越慢，如果用一個例子來描述的話就像是一個走得較慢的時鐘，使得進程能夠在固定時間內執行更長時間，而 nice 值較高的進程則像是一個走得較快的時鐘，使得它們的 `vruntime` 增加得更快，從而減少了在 CPU 上的運行時間。
+CFS（Completely Fair Scheduler）是 Linux 核心中用於進程調度的主要機制，其核心目標是確保所有進程能夠公平地分享 CPU 資源。在 CFS 的運作中，`vruntime`（虛擬運行時間）佔有非常重要的地位，它代表了進程自啟動以來在 CPU 上運行的時間。CFS 通過比較各進程的 `vruntime` 來決定哪個進程應該獲得下一個 CPU 時間段。當一個進程完成其分配的時間片後，CFS 會更新該進程的 `vruntime`，以反映其在 CPU 上的總運行時間。這個更新過程是通過將進程重新插入到紅黑樹（RB-Tree）的數據結構中來完成的，紅黑樹使得 CFS 能夠高效地找到下一個擁有最小 `vruntime` 值的進程。
 
-CFS（Completely Fair Scheduler）排程器是 Linux 核心中用於進程調度的主要機制，其核心目標是確保所有進程能夠公平地分享 CPU 資源。在 CFS 的運作中，一個關鍵的概念是 `vruntime`，即虛擬運行時間，它代表了進程自啟動以來在 CPU 上運行的時間。CFS 通過比較各進程的 `vruntime` 來決定哪個進程應該獲得下一個 CPU 時間段。當一個進程完成其分配的時間片後，CFS 會更新該進程的 `vruntime`，以反映其在 CPU 上的總運行時間。這個更新過程是通過將進程重新插入到紅黑樹（RB-Tree）的數據結構中來完成的，紅黑樹使得 CFS 能夠高效地找到下一個擁有最小 `vruntime` 值的進程。除了對單個進程的調度之外，CFS 還引入了 `task_group` 的概念，這使得它能夠將相關的進程組織成群組，並作為一個單位進行調度。這種方法允許系統在不同進程群組間實現資源分配的公平性。每個 `task_group` 都有自己的調度實體，這意味著群組內的所有進程共享相同的調度特性和資源限制，對於需要限制或保證特定應用或用戶的 CPU 資源非常重要。
+閱讀完上述所提及的各項概念，不難發現一件弔詭的情況，明明 `static_prio`、`nice` 和 `vruntime` 之間的配合會對 OS 和 CFS 產生顯著的影響，為何實際實驗出來的結果卻是 `static_prio` 被調整前後，進程執行的時間皆未發生顯著變化？我們對此做了一些探討，經過研究後最終提出的看法或許會讓人大跌眼鏡，就是 CFS（Completely Fair Scheduler）並沒有想像中公平（Fair）！
 
-> [!TIP]
-> 1. `nice` 值：nice 是一個範圍在 -20 到 +19 的整數，用於表示進程的優先級，數值越低則優先級越高。nice 值影響進程的權重（weight），這是 CFS 用來決定進程應獲得多少 CPU 時間的關鍵因素。  
-> 2. weight 和 `nice` 值：CFS 根據 nice 計算進程的 weight。nice 值越低則 weight 越高，進程獲得的 CPU 時間越多。weight 的計算公式是基於 nice 值的，並且是非線性的。這意味著 nice 值的微小變化可以導致權重的顯著變化。  
-> 3. `vruntime` 值：vruntime 是進程的虛擬運行時間，它是 CFS 用來追蹤進程已獲得的 CPU 時間的。每當進程在 CPU 上運行時，其 vruntime 會增加。
-> 4. `nice` 與 `vruntime` 之間的關係：進程的 nice 值間接通過影響權重來影響其 vruntime 的增長速度。一個 nice 值較高（優先級較低）的進程會有較低的權重，導致其 vruntime 增長較快，從而減少其獲得 CPU 時間的機會。相反，nice 值較低（優先級較高）的進程會有較高的權重，其 vruntime 增長較慢，從而增加其獲得 CPU 時間的機會。
+為了解釋 CFS 為何並不公平，我們需要討論在新版本 Linux Kernel 中所引進的 `task_group`。何謂 `task_group`？`task_group` 是一種系統機制，允許系統將相關的進程組織成群組，並作為「一個單位」進行調度，使得群組內的 Process 在 CPU 時間分配上共享「相同」的調度特性和資源限制。`task_group` 同樣具有權重機制，可以對進程的 `vruntime` 增長速度產生影響，每個 `task_group` 都有一個權重，該權重決定了該群組內進程的 `vruntime` 增長速度。如果一個 `task_group` 的權重較高，其內部進程的 `vruntime` 增長較慢，這意味著這些 Process 可以獲得更多的 CPU 時間；反之，如果一個 `task_group` 的權重較低，其內部進程的 `vruntime` 增長較快，這意味著這些 Process 只能獲得較少 CPU 時間。
+
+不過這就是我們認為的問題所在，由於 `task_group` 是採用 Group 的方式來對內部擁有的所有 Process 權重來進行調整，這種權重機制有可能導致特定群組相對於其他群組或是個別進程獲得更多的 CPU 資源，從而影響到系統中其他進程的公平性。換句話說，擁有高權重的 Group 在進行排程時可能會被 CFS 優先排入隊列，進而占用大量的 CPU 時間。在這樣的前提下，我們猜測調整 `static_prio` 卻無法獲得差異的原因可能有下列兩種：其一，假設有一個高權重的 Group，而我們的 Process 是該 Group 的其中一員，即便我們對該特定 Process 調整其 `static_prio` 的值，由於 CFS 還是先以 `task_group` 所持有的權重來進行排程，整個 Group 在系統中依然擁有優先地位，該特定 Process 的權重差異變成僅能體現在 Group 內部的排程先後，就系統宏觀來看執行的差異非常小；其二則是，如果該 Process 並不再擁有高權重的 Group 內，不論是被分配到其他 Group 還是沒有被分配，不管該特定 Process 調整成甚麼優先級，該 Process 終歸要在高權重的 Group Process 被 CFS 排程完後才能獲取所需 CPU 時間，也就很難看出調整後的差異了。
 
 ---
 
