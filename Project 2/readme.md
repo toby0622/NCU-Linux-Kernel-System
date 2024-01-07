@@ -29,11 +29,13 @@ int my_set_process_priority(int x)
 
 ## 設計方法
 
-* Add a new field in task_struct
-修改task_struct的程式碼，新增`my_fixed_priority`欄位用來存取自行設定的priority的數值，不過要在`randomized_struct_fields_start`及`randomized_struct_fields_end`的中間新增，因為為了增加kernel的安全性，kernel使用了編譯器提供的randomize layout，目的是在編譯期將struct中的欄位排序隨機化，這樣可以對struct中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握struct中的所有數據位址。
+* Add New Field in `task_struct`  
 
-1. `vim include/linux/sched.h`進入sched.h
-2. 插入`int				my_fixed_priority;`
+修改 `task_struct` 的程式碼，新增 `my_fixed_priority` 欄位用來存取自行設定的 Priority 的數值，不過要在 `randomized_struct_fields_start` 及 `randomized_struct_fields_end` 的中間新增，因為為了增加 Kernel 的安全性，Kernel 使用了 Compiler 所提供的 Randomize Layout，目的是在編譯期將 `struct` 中的欄位排序隨機化，這樣可以對 `struct` 中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握 `struct` 中的所有數據位址。
+
+> [!NOTE]
+> 1. `vim include/linux/sched.h` 進入 `sched.h`
+> 2. 插入 `int my_fixed_priority;`
 
 ![P1](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/1.png?raw=true)
 
