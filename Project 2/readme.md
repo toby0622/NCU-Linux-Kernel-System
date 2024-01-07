@@ -27,13 +27,13 @@ int my_set_process_priority(int x)
 
 ---
 
-## 設計方法
+## Linux Kernel 設計調整
 
 * Add New Field in `task_struct`  
 
 修改 `task_struct` 的程式碼，新增 `my_fixed_priority` 欄位用來存取自行設定的 Priority 的數值，不過要在 `randomized_struct_fields_start` 及 `randomized_struct_fields_end` 的中間新增，因為為了增加 Kernel 的安全性，Kernel 使用了 Compiler 所提供的 Randomize Layout，目的是在編譯期將 `struct` 中的欄位排序隨機化，這樣可以對 `struct` 中的數據提供一定的保護能力，入侵者無法根據原始碼就能掌握 `struct` 中的所有數據位址。
 
-> [!NOTE]
+> [!IMPORTANT]
 > 1. `vim include/linux/sched.h` 進入 `sched.h`
 > 2. 插入 `int my_fixed_priority;`
 
@@ -41,45 +41,58 @@ int my_set_process_priority(int x)
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/1.png?raw=true" alt="P1"/>
 </p>
 
-* Initialize the new field
+* Initialize New Field
 
-因為linux在建立新task時的共同function為copy_process()，故我們在copy_process這個函數內對在task_struct內新增的my_fixed_priority欄位做初始化為0。
+因為 Linux 在建立新 Task 時的共同 Function 為 `copy_process()`，故我們在 `copy_process` 這個函數內對在 `task_struct` 新增的 `my_fixed_priority` 欄位做初始化為 0。
 
-1. `vim kernel/fork.c`進入fork.c
-2. 插入`p->my_fixed_priority = 0;`
+> [!IMPORTANT]
+> 1. `vim kernel/fork.c` 進入 `fork.c`
+> 2. 插入 `p -> my_fixed_priority = 0;`
 
 <p align="center">
     <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/2.png?raw=true" alt="P2"/>
 </p>
 
-* __schedule
-因為test.c執行結果在各static_prio下，執行時間並無顯著差異，所以我們在__schedule中多加嘗試，在context switch前的各時間點判斷task是否需要調整static_prio。
+* `__schedule`
 
-#### 1 (對照 test result 1)
-在__schedule內，直接先判斷current task(prev)是否需調整static_prio。
-1. `vim kernel/sched/core.c`進入core.c
-2. 在尚未取得next task前插入以下程式碼判斷prev是否需調整static_prio欄位
-    ```
-    if(prev->static_prio != 0 && prev->my_fixed_priority >= 101 && prev->my_fixed_priority <= 139)
-        prev->static_prio = prev->my_fixed_priority;
-    ```
-    <p align="center">
-        <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/3.png?raw=true" alt="P3"/>
-    </p>
+因為 `test.c` 執行結果在各 `static_prio` 下，執行時間並無顯著差異，所以我們在 `__schedule` 中多加嘗試，在 Context Switch 前的各時間點判斷 Task 是否需要調整 `static_prio`。
 
-#### 2 (對照 test result 2)
-在__schedule內，得到next task後判斷next task(next)是否需調整static_prio。
-1. `vim kernel/sched/core.c`進入core.c
-2. 在已取得next task後，執行context switch前，插入以下程式碼判斷next是否需調整static_prio欄位
-    ```
-    if(next->static_prio != 0 && next->my_fixed_priority >= 101 && next->my_fixed_priority <= 139)
-                next->static_prio = next->my_fixed_priority;
-    ```
-    <p align="center">
-        <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/4.png?raw=true" alt="P4"/>
-    </p>
+> [!NOTE]
+> 想法一（對照 Test Result 1）
+> 在 `__schedule` 內，直接先判斷 current task(prev) 是否需調整 `static_prio`。
 
-### New system call
+1. `vim kernel/sched/core.c` 進入 `core.c`
+2. 在尚未取得 next task 前插入以下程式碼判斷 prev 是否需調整 `static_prio` 欄位
+
+```c
+if (prev -> static_prio != 0 && prev -> my_fixed_priority >= 101 && prev -> my_fixed_priority <= 139)
+    prev -> static_prio = prev -> my_fixed_priority;
+```
+    
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/3.png?raw=true" alt="P3"/>
+</p>
+
+> [!NOTE]
+> 想法二（對照 Test Result 2）
+> 在 `__schedule` 內，得到 next task 後判斷 next task(next) 是否需調整 `static_prio`。
+
+1. `vim kernel/sched/core.c` 進入 `core.c 
+2. 在已取得 next task 後，執行 Context Switch 前，插入以下程式碼判斷 next 是否需調整 `static_prio` 欄位
+
+```c
+if (next -> static_prio != 0 && next -> my_fixed_priority >= 101 && next -> my_fixed_priority <= 139)
+            next -> static_prio = next -> my_fixed_priority;
+```
+
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/4.png?raw=true" alt="P4"/>
+</p>
+
+---
+
+## Linux SYSCALL 建立
+
 1. system call建立在資料夾mysyscall內
 2. 建立`my_set_process_priority.c`
 3. syscall內自行新增的Makefile加入`my_set_process_priority.o`
