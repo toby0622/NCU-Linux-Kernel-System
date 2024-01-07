@@ -261,3 +261,4 @@ CFS 排程器在排程時主要是看 `vruntime` 值，將 `vruntime` 值最小�
 1. 概述 CFS Scheduler：<https://hackmd.io/@RinHizakura/B18MhT00t>
 2. 深入剖析 CFS Scheduler：<https://hackmd.io/@RinHizakura/BJ9m_qs-5>
 3. 四種任務優先度之間的差異：<https://hackmd.io/@kurokuo/r1naFPjRV>
+4. Linux 的进程优先级 NI 和 PR：<https://zhuanlan.zhihu.com/p/196809034>
