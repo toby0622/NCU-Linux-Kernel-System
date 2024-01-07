@@ -35,7 +35,7 @@ int my_set_process_priority(int x)
 1. `vim include/linux/sched.h`進入sched.h
 2. 插入`int				my_fixed_priority;`
 
-![image](https://hackmd.io/_uploads/ByaOBDEOp.png)
+![P1](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/1.png?raw=true)
 
 * Initialize the new field
 
@@ -44,7 +44,7 @@ int my_set_process_priority(int x)
 1. `vim kernel/fork.c`進入fork.c
 2. 插入`p->my_fixed_priority = 0;`
 
-![image](https://hackmd.io/_uploads/HJ1Sjgv_T.png)
+![P2](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/2.png?raw=true)
 
 * __schedule
 因為test.c執行結果在各static_prio下，執行時間並無顯著差異，所以我們在__schedule中多加嘗試，在context switch前的各時間點判斷task是否需要調整static_prio。
@@ -57,7 +57,7 @@ int my_set_process_priority(int x)
     if(prev->static_prio != 0 && prev->my_fixed_priority >= 101 && prev->my_fixed_priority <= 139)
         prev->static_prio = prev->my_fixed_priority;
     ```
-    ![image](https://hackmd.io/_uploads/HkCNGtwua.png)
+    ![P3](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/3.png?raw=true)
 
 #### 2 (對照 test result 2)
 在__schedule內，得到next task後判斷next task(next)是否需調整static_prio。
@@ -67,7 +67,7 @@ int my_set_process_priority(int x)
     if(next->static_prio != 0 && next->my_fixed_priority >= 101 && next->my_fixed_priority <= 139)
                 next->static_prio = next->my_fixed_priority;
     ```
-    ![image](https://hackmd.io/_uploads/Sk4ZMtvO6.png)
+    ![P4](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/4.png?raw=true)
 
 ### New system call
 1. system call建立在資料夾mysyscall內
@@ -164,17 +164,17 @@ int main() {
 
 #### result 1
 testProject2.c執行結果：
-![image](https://hackmd.io/_uploads/BykD0NwOT.png)
+![P5](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/5.png?raw=true)
 
 system call內對重要參數print資訊：
-![image](https://hackmd.io/_uploads/H1h_AEP_a.png)
+![P6](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/6.png?raw=true)
 
 #### result 2
 testProject2.c執行結果：
-![image](https://hackmd.io/_uploads/ryunkYwua.png)
+![P7](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/7.png?raw=true)
 
 system call內對重要參數print資訊：
-![image](https://hackmd.io/_uploads/r1ks1tPua.png)
+![P8](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/8.png?raw=true)
 
 ### 原因探討
 在static_prio被調整前後，進程執行時間皆未發生顯著變化。
@@ -193,4 +193,4 @@ CFS排程器在排程時主要是看vruntime值，將vruntime值最小的task執
 
 ### 筆記
 建立多個system call時，自行建立的Makefile內寫法如下，否則在make時會報錯。
-![image](https://hackmd.io/_uploads/ry8gUrS_T.png)
+![P9](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/9.png?raw=true)
