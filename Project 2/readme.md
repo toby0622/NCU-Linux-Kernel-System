@@ -37,7 +37,9 @@ int my_set_process_priority(int x)
 > 1. `vim include/linux/sched.h` 進入 `sched.h`
 > 2. 插入 `int my_fixed_priority;`
 
-![P1](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/1.png?raw=true)
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/1.png?raw=true" alt="P1"/>
+</p>
 
 * Initialize the new field
 
@@ -46,7 +48,9 @@ int my_set_process_priority(int x)
 1. `vim kernel/fork.c`進入fork.c
 2. 插入`p->my_fixed_priority = 0;`
 
-![P2](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/2.png?raw=true)
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/2.png?raw=true" alt="P2"/>
+</p>
 
 * __schedule
 因為test.c執行結果在各static_prio下，執行時間並無顯著差異，所以我們在__schedule中多加嘗試，在context switch前的各時間點判斷task是否需要調整static_prio。
@@ -59,7 +63,9 @@ int my_set_process_priority(int x)
     if(prev->static_prio != 0 && prev->my_fixed_priority >= 101 && prev->my_fixed_priority <= 139)
         prev->static_prio = prev->my_fixed_priority;
     ```
-    ![P3](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/3.png?raw=true)
+    <p align="center">
+        <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/3.png?raw=true" alt="P3"/>
+    </p>
 
 #### 2 (對照 test result 2)
 在__schedule內，得到next task後判斷next task(next)是否需調整static_prio。
@@ -69,7 +75,9 @@ int my_set_process_priority(int x)
     if(next->static_prio != 0 && next->my_fixed_priority >= 101 && next->my_fixed_priority <= 139)
                 next->static_prio = next->my_fixed_priority;
     ```
-    ![P4](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/4.png?raw=true)
+    <p align="center">
+        <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/4.png?raw=true" alt="P4"/>
+    </p>
 
 ### New system call
 1. system call建立在資料夾mysyscall內
@@ -165,18 +173,32 @@ int main() {
 ### Test rusult
 
 #### result 1
+
 testProject2.c執行結果：
-![P5](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/5.png?raw=true)
+
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/5.png?raw=true" alt="P5"/>
+</p>
 
 system call內對重要參數print資訊：
-![P6](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/6.png?raw=true)
+
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/6.png?raw=true" alt="P6"/>
+</p>
 
 #### result 2
+
 testProject2.c執行結果：
-![P7](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/7.png?raw=true)
+
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/7.png?raw=true" alt="P7"/>
+</p>
 
 system call內對重要參數print資訊：
-![P8](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/8.png?raw=true)
+
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/8.png?raw=true" alt="P8"/>
+</p>
 
 ### 原因探討
 在static_prio被調整前後，進程執行時間皆未發生顯著變化。
@@ -194,5 +216,9 @@ CFS排程器在排程時主要是看vruntime值，將vruntime值最小的task執
 參考資料：https://hackmd.io/@RinHizakura/B18MhT00t
 
 ### 筆記
+
 建立多個system call時，自行建立的Makefile內寫法如下，否則在make時會報錯。
-![P9](https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/9.png?raw=true)
+
+<p align="center">
+    <img src="https://github.com/toby0622/NCU-Linux-Kernel-System/blob/main/Project%202/Screenshots/9.png?raw=true" alt="P9"/>
+</p>
