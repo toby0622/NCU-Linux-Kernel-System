@@ -262,3 +262,4 @@ CFS（Completely Fair Scheduler）是 Linux 核心中用於進程調度的主要
 2. 深入剖析 CFS Scheduler：<https://hackmd.io/@RinHizakura/BJ9m_qs-5>
 3. 四種任務優先度之間的差異：<https://hackmd.io/@kurokuo/r1naFPjRV>
 4. Linux 的进程优先级 NI 和 PR：<https://zhuanlan.zhihu.com/p/196809034>
+5. Linux 核心設計不只挑選任務的排程器：<https://hackmd.io/@sysprog/linux-scheduler>
